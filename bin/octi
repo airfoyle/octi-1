@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+=begin
+	
+rescue Exception => e
+	
+end
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'dispel'
+require 'octi'
+
+def draw(ttt)
+	[ttt.board, status_line(ttt), "q=Quit r=Reset"].join("\n") 
+	#a=AI-move
+end
+
+def status_line(ttt)
+	if winner = ttt.winner
+		"Player #{winner} has won!!!!"
+	else
+		"It is #{ttt.player}'s turn..."
+	end
+end
+
+Dispel::Screen.open do |screen|
+	ttt. Board.new
+	screen.draw draw(ttt)
+
+	Dispel::Keyboard.output do |key|
+		case key
+		when :up then ttt.move(0,-1)
+	    when :down then ttt.move(0,1)
+	    when :right then ttt.move(1,0)
+	    when :left then ttt.move(-1,0)
+	    when "a" then ttt.ai_move
+	    when :enter then ttt.set # enter
+	    when "q" then break
+	    when "r" then ttt = Board.new
+	    end
+    	screen.draw draw(ttt)
+  end
+end
+=end
