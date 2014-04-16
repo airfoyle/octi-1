@@ -1,12 +1,18 @@
-class Pod
-	def initialize(color)
-		@color = color
-		@prongs = Array.new(8, false)
-	end
 
-	def can_move?
-	end
+module Octi
+	class Pod
+		attr_accessor :player
 
-	def can_jump?
+		def initialize(player)
+			@prongs = Array.new(8, false)
+			self.player = player
+		end
+
+		def can_move?
+		end
+
+		def can_jump?
+		end
 	end
 end
+

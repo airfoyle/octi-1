@@ -16,8 +16,8 @@ module Octi
 
 		def initialize(current_player, board)
 			self.current_player = current_player
-			self.board = board
-			self.moves = []
+			self.board = board #position
+			self.moves = []		#list of possible moves
 		end
 
 		def 

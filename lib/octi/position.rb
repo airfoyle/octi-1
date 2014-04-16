@@ -1,6 +1,6 @@
 #validate position strings
 #return x & y coordinates 
-class Position
+#class Position
 	# class OutOfBoundsError < StandardError; end
 	# class BadArgumentError < StandardError; end
 
@@ -50,4 +50,4 @@ class Position
 	 #      return [position_string[1].to_i, position_string[0].downcase]
 	 #    end
   #  end    
-end
+#end
