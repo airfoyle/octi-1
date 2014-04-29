@@ -8,7 +8,9 @@ module Octi
 			
 			1.upto(4) do |i|
 				@board[1][i] = Pod.new(@human)
+				@human.positions << [1,i]
 				@board[5][i] = Pod.new(@comp)
+				@comp.positions << [5,i]
 			end 
 		end
 	end	

@@ -1,6 +1,6 @@
 module Octi
 	class GameState
-		attr_accessor :current_player, :board, :moves
+		attr_accessor  :board, :moves
 
 		class Cache
 			attr_accessor :states
@@ -14,10 +14,10 @@ module Octi
 		end
 		self.cache = Cache.new
 
-		def initialize(board)
+		def initialize(comp, human, board)
 			self.board = board #position
-			#list of pod positions comp
-			#list of pod positions human
+			comp_pos = comp.positions #list of pod positions comp
+			human_pos = comp.positions #list of pod positions human
 			
 			#self.moves = []		#list of possible moves
 		end

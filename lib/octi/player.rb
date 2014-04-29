@@ -8,7 +8,7 @@ module Octi
 		attr_accessor :pods
 
 		def initialize
-			
+			positions = Array.new
 		end
 
 	end
