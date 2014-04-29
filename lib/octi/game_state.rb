@@ -14,13 +14,12 @@ module Octi
 		end
 		self.cache = Cache.new
 
-		def initialize(current_player, board)
-			self.current_player = current_player
+		def initialize(board)
 			self.board = board #position
-			self.moves = []		#list of possible moves
+			#list of pod positions comp
+			#list of pod positions human
+			
+			#self.moves = []		#list of possible moves
 		end
-
-		def 
-
 	end
 end
