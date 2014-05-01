@@ -1,14 +1,9 @@
-#2 players
-# => Black and Red
-# => Black = Computer
-# => Red = Human
-
 module Octi
 	class Player 
-		attr_accessor :pods
+		attr_accessor :pods, :positions
 
 		def initialize
-			positions = Array.new
+			@positions = Array.new
 		end
 
 	end
