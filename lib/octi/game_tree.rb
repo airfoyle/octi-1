@@ -1,7 +1,7 @@
 module Octi
 	class GameTree
 
-		attr_accessor :comp, :human, :positions, :comp_pos, :board, :inserts
+		attr_accessor :comp, :human, :positions, :comp_pos, :board, :inserts,:pod
 		
 		def initialize
 		end
@@ -10,22 +10,72 @@ module Octi
 			initial_game_state = GameState.new(comp,human, @board = Board.new(6,7))
 			generate_moves(initial_game_state)
 			initial_game_state
+			next_game_state = GameState.new(comp,human, Board.new(6,7))
+			#test(next_game_state)
 		end
 
 		def generate_moves(game_state)
-			hops = Array.new #array of Hop objects
-			inserts=nil
-			jumps = []
-			
+			inserts = []
+			hops = []
+			jump_seq = []
 			for position in game_state.board.comp.positions
-				#if pod can move, make move?
-				insert_move = Insert.new.make(game_state, position)
-				hope_move = Hop.new.make(game_state, position)
-				jump_move = Jump.new.make(game_state.board, position)
+				generate_inserts(game_state, position, inserts)
+				#generate_hops(game_state, position, hops)
+				#generate_hops(game_state, position, jump_seq)
+				break
 			end
-			puts game_state.moves
 
+			# puts hops
+			 puts inserts[0].inspect
+			 puts
+			 			 puts inserts[1].inspect
+			 
+			 #puts inserts[1].inspect
+			# puts jump_seq
+
+			#next_game_state = GameState.new(comp,human, Board.new(6,7))
+			#generate_moves(next_game_state)
 		end
+
+		def test(next_game_state)
+			generate_moves(next_game_state)
+		end
+
+
+		def generate_inserts(game_state, position, results)
+			pod = game_state.board.board[position[0]][position[1]]
+			pod.prongs.each_with_index do |row, i|
+				row.each_with_index do |col, j|
+					new_b = Board.new(6,7)
+					val = Insert.new(new_b.board, position).make(i,j)
+					val ? results << val : next
+
+				end
+			end
+		end
+		def generate_hops(game_state, position, results)
+			pod = game_state.board.board[position[0]][position[1]]
+			pod.prongs.each_with_index do |row, i|
+				row.each_with_index do |col, j|
+					new_b = Board.new(6,7)
+					val = Hop.new(new_b.board, position).make(i,j)
+					val ? results << val : next
+				end
+			end
+		end	
+		def generate_jumps(game_state, position, results)
+			pod = game_state.board.board[position[0]][position[1]]
+			pod.prongs.each_with_index do |row, i|
+				row.each_with_index do |col, j|
+					new_b = Board.new(6,7)
+					val = Jump.new(new_b.board, position).make(i,j)
+					if val
+						results << val
+						generate_jumps(game_state, position, results)
+					end
+				end
+			end
+		end				
 	end
 end
 

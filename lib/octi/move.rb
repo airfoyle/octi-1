@@ -2,102 +2,72 @@ module Octi
 	class Move
 		attr_accessor :pod, :prongs, :board, :game_state
 
-		def initialize
- 		end
-
- 		def make(game_state,position)
-			@game_state = game_state
-			@board = game_state.board.board
-			@x = position[1]
-			@y = position[2]
+		def initialize(board,position)
+			@board = board
+			@x = position[0]
+			@y = position[1]
 			#@pod = position[0] #pod
 			@origin= @board[@x][@y]
 			@destination = @origin
-		end
+ 		end
 
-=begin
-		def can_move?(board, x, y)
-			count = -1
-			for i in -1..1
-				for j in -1..1
-					count++
-					if (i&&j) == 0
-						next
-					elsif ((0..5)===(x+i) && (0..6)===(y+j)) #on board
-						if (@board[x][y].prongs[count]  && @board[x+i][y+j] ==nil)
-							return true #create a hop move
-						else 
-							chain = []
-							can_jump?(board, x, y, chain)
-							#create pong insertion move	
-							#@board[x][y].prongs[count] = true
-							#WHAT NOW??
-						end
-					end
-				end
-			end
-		end
 
-	
-		def can_jump?(board, x,y,chain)
-			#is there a prong? --from can_move?
-			#is there a pod to jump over --from can_move?
-			#is cell after pod nil? -- logic below
-			count = -1
-			for i in -1..1
-				for j in -1..1
-					count++
-					if ((i&&j) == 0)
-						next
-					elsif ((0..5)===(x+i) && (0..6)===(y+j)) && @board[x][y].prongs[count]#on board
-						if (@board[x+2*i][y+2*j] ==nil && (@board[x+i][y+j]).is_a?(Pod))
-							chain << @board[x+i][y+j]
-							can_jump?(board, x+2*i, y+2*i, chain) #can jump from new position
-							#create jump move
-							#can_jump?(@board, x+i, y+j, chain)
-						else 
-							@jumped << chain
-						end
-					else
-						@jumped << chain
-					end
-				end
-			end
+		def make
 		end
-=end	
-
 	end
 
 
 	class Insert < Move
 		attr_accessor :pod, :prongs, :inserts
-		def initialize
-			@inserts = []
+		def initialize(game_state,position)
+			super
 		end
-		def make(game_state, position)
+
+		def make(x,y)
+			if !@origin.prongs[x][y]
+				@origin.prongs[x][y] = true
+				return self					
+			end
+		end
+=begin
+		def make
 			super
 			@origin.prongs.each_with_index do |row, i|
-				row.each_with_index do |col, j|		
+				row.each_with_index do |col, j|
 					if !@origin.prongs[i][j]
 							@origin.prongs[i][j] = true
 							@inserts << self
-
-							new_move = Insert.new.make(game_state,position)
+							return self					
 					end
 				end
 			end	
 			#add moves to GS.moves?
-			game_state.moves << @inserts
-			return @inserts
+			# game_state.moves << @inserts
+			# return @inserts
 		end	
+=end
 	end
 
 	class Hop < Move
 		attr_accessor :pod, :prongs, :board
-		def initialize
-			@hops = []
+		def initialize(game_state,position)
+			super
 		end
 
+		def make(i,j)
+			if @origin.prongs[i][j]
+				if ((0..5)===(@x+i) && (0..6)===(@y+j) && @board[@x+i][@y+j] == nil)
+					#make move here
+					@destination = @board[@x+i][@y+j]
+					#@origin = @destination
+					position[0] = @x+i
+					position[1] = @y+j
+					return self
+				end
+			end
+		end
+
+=begin
 		def make(game_state, position)
 			super
 			@origin.prongs.each_with_index do |row, i|
@@ -105,13 +75,14 @@ module Octi
 					if @origin.prongs[i][j]
 						if ((0..5)===(@x+i) && (0..6)===(@y+j) && @board[@x+i][@y+j] == nil)
 							#make move here
+							new_move = self.dup
 							@destination = @board[@x+i][@y+j]
 							@origin = @destination
 							position[0] = @origin
 							position[1] = @x+i
-							position[1] = @y+j
+							position[2] = @y+j
 							@hops << self
-							new_move = Hop.new.make(game_state,position)
+							#new_move = Hop.new.make(game_state,position)
 						end
 					end
 				end
@@ -119,14 +90,31 @@ module Octi
 			game_state.moves << @hops
 			return @hops		
 		end
+=end		
 	end
 
 	class Jump < Move
-		def initialize(board, position)
+		attr_accessor :pod, :prongs, :board
+		def initialize
 			@jumped_pods = []
 			@jump_sequence = []
 		end
 
+		def make(i,j)
+			if @origin.prongs[i][j] && ((0..5)===(@x+2*i) && (0..6)===(@y+2*j))
+				if @board[@x+i][@y+j].is_a?(Pod) && @board[@x+2*i][@y+2*j] == nil
+					@jumped_pods << board[@x+i][@y+j]
+					@destination = 	board[@x+2*i][@y+2*j] #completes jump object with origin and destination
+					#@origin = @destination 
+					position[0] = @x+2*i
+					position[1] = @y+2*j
+					#recursion
+					# @jump_sequence << self 
+					# new_move = Jump.new.make(game_state,position)
+				end
+			end
+		end
+=begin
 		def make(game_state, position)
 			super
 			@origin.prongs.each_with_index do |row, i|
@@ -138,7 +126,7 @@ module Octi
 							@origin = @destination 
 							position[0] = @origin
 							position[1] = @x+2*i
-							position[1] = @y+2*j
+							position[2] = @y+2*j
 							#recursion
 							@jump_sequence << self 
 							new_move = Jump.new.make(game_state,position)
@@ -148,7 +136,9 @@ module Octi
 			end
 			game_state.moves << @jump_sequence
 			return @jump_sequence
-		end		
+		end	
+
+=end	
 	end	
 
 end
