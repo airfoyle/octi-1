@@ -9,5 +9,5 @@ Dir[lib_path + "/octi/**/*.rb"].each { |file| require file }
 
 
 #b = Octi::Board.new(6,7)
-g = Octi::GameTree.new
-g.generate
+g = Octi::Game.new
+

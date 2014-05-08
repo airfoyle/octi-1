@@ -1,53 +1,61 @@
-#validate position strings
-#return x & y coordinates 
-#class Position
-	# class OutOfBoundsError < StandardError; end
-	# class BadArgumentError < StandardError; end
+module Octi
+	class Position
+		attr_accessor :comp, :human
+		def initialize(pods)
+			@pods = pods.dup
+			@podLocs = Array.new() { Array.new(nil) }
+			@podLocs[comp.index] = find_pods_for_player(comp)
+			@podLocs[human.index] = find_pods_for_player(human)
+			
+		end
 
-	# VALID_COLUMNS = %w[1 2 3 4 5 6]
-	# VALID_ROWS = [1, 2, 3, 4, 5, 6, 7]
+		def legal_moves(player)
+			return (prong_inserts(player) + hops(player) + jumps(player))
+		end
 
-	 # ERRORS = {
-  #     :bad_column => 'Column out of bounds. Columns must be in the range a through h.',
-  #     :bad_row => 'Row out of bounds. Rows must be in the range 1 through 8.',
-  #     :bad_argument => 'You must supply a two character position string, like this: Chess::Position.new("a4")'
-  #   }
+		def prong_inserts(player)
+			for pod in @podLocs[comp.index]
+				pod.prongs.each_with_index do |row, i|
+					row.each_with_index do |col, j|
+						new_b = Board.new(6,7)
+						val = Insert.new(new_b.board, position).make(i,j)
+						val ? results << val : next
+					end
+				end	
+			end		
+		end
 
-    # attr_reader :row, :column, :x, :y
-
-    # def initialize(position_string)
-    # 	self.class.raise_error_for(position_string) unless self.clas.valid?(position_string)
-    # 	@row, @column = self.class.extract_args(position_string)
-    # 	@x = (VALID_COLUMNS.index(@column) + 1)
-    # 	@y = (VALID_COLUMNS.index(@row) + 1) #  double check this logic
-    # end
-
-    # def to_s
-    # 	@column + @row.to_s
-    # end
+		def hops(player)
+			
+		end
 
 
-#might be unnecessary 
-    
-  #   class << self
-	 #    def valid?(position_string)
-	 #    	begin
-	 #    		raise_error_for (position_string)
-	 #    		return true
-	 #    	rescue 
-	 #    		return false
-	 #    	end
-	 #    end
+		def jumps(player)
+			for pod in @podLocs[comp.index]
+				pod.prongs.each_with_index do |row, i|
+					row.each_with_index do |col, j|
+						new_b = Board.new(6,7)
+						val = Jump.new(new_b.board, position).make(i,j)
+						if val
+							results << val
+							generate_jumps(game_state, position, results)
+						end
+					end
+				end
+			end
+		end
 
-		# def raise_error_for(position_string)
-		# 	raise BadArgumentError.new(ERRORS[:bad_argument]) unless position_string.length == 2
-		# 	row, column = self.extract_args(position_string)
-		# 	raise OutOfBoundsError.new(ERRORS[:bad_column] + " You supplied #{column}.") unless VALID_COLUMNS.include?(column)
-		# 	raise OutOfBoundsError.new(ERRORS[:bad_row] + " You supplied #{row}.") unless VALID_ROWS.include?(row)
-		# end
+		#return array of player's pod locations 
+		def find_pods_for_player(pods, player)
+			results = []
+			@pods.each_with_index do |row, i|
+				row.each_with_index do |col, j|	
+					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == player 
+						results << [i,j] # consider returning just coodinates
+					end
+				end
+			end
+		end
+	end
+end
 
-	 #    def extract_args(position_string)
-	 #      return [position_string[1].to_i, position_string[0].downcase]
-	 #    end
-  #  end    
-#end

@@ -16,7 +16,6 @@ module Octi
 		end
 	end
 
-
 	class Insert < Move
 		attr_accessor :pod, :prongs, :inserts
 		def initialize(game_state,position)
@@ -29,6 +28,19 @@ module Octi
 				return self					
 			end
 		end
+
+	# class Insert < Move
+	# 	attr_accessor :pod, :prongs, :inserts
+	# 	def initialize(game_state,position)
+	# 		super
+	# 	end
+
+	# 	def make(x,y)
+	# 		if !@origin.prongs[x][y]
+	# 			@origin.prongs[x][y] = true
+	# 			return self					
+	# 		end
+	# 	end
 =begin
 		def make
 			super
@@ -90,7 +102,8 @@ module Octi
 			game_state.moves << @hops
 			return @hops		
 		end
-=end		
+=end	
+
 	end
 
 	class Jump < Move

@@ -2,9 +2,12 @@ module Octi
 	class Player 
 		attr_accessor :pods, :positions
 
-		def initialize
-			@positions = Array.new
+		def initialize(i)
+			@index = i
 		end
 
+		def index
+			return @index
+		end
 	end
 end

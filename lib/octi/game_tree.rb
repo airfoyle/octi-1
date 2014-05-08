@@ -7,34 +7,24 @@ module Octi
 		end
 
 		def generate
-			initial_game_state = GameState.new(comp,human, @board = Board.new(6,7))
+			initial_game_state = GameState.new(@comp = Player.new(0),@human = Player.new(1), @board = Board.new(6,7))			
 			generate_moves(initial_game_state)
-			initial_game_state
-			next_game_state = GameState.new(comp,human, Board.new(6,7))
+			#next_game_state = GameState.new(@comp,@human, Board.new(6,7))
 			#test(next_game_state)
 		end
 
 		def generate_moves(game_state)
-			inserts = []
-			hops = []
-			jump_seq = []
-			for position in game_state.board.comp.positions
-				generate_inserts(game_state, position, inserts)
-				#generate_hops(game_state, position, hops)
-				#generate_hops(game_state, position, jump_seq)
-				break
-			end
-
-			# puts hops
-			 puts inserts[0].inspect
-			 puts
-			 			 puts inserts[1].inspect
-			 
-			 #puts inserts[1].inspect
-			# puts jump_seq
-
-			#next_game_state = GameState.new(comp,human, Board.new(6,7))
-			#generate_moves(next_game_state)
+			
+			
+			# inserts = []
+			# hops = []
+			# jump_seq = []
+			# for position in game_state.board.comp.positions
+			# 	generate_inserts(game_state, position, inserts)
+			# 	#generate_hops(game_state, position, hops)
+			# 	#generate_hops(game_state, position, jump_seq)
+			# 	break
+			# end
 		end
 
 		def test(next_game_state)
