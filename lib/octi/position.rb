@@ -51,7 +51,7 @@ module Octi
 			@pods.each_with_index do |row, i|
 				row.each_with_index do |col, j|	
 					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == player 
-						results << [i,j] # consider returning just coodinates
+						results << Location.new(i,j) #consider returning just location
 					end
 				end
 			end
