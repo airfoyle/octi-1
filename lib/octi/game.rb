@@ -7,9 +7,9 @@ module Octi
 
 	def turn
 		if @game_state.final_state?
-		 	describe_final_game_state
+		 	#describe_final_game_state
 		end
-		if @game_state.current_player == 
+		if @game_state.current_player == #??
 		  	turn
 		else
 		 	get_human_move

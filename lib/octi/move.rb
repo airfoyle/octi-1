@@ -2,7 +2,7 @@ module Octi
 	class Move
 		attr_accessor :pod, :prongs, :board, :game_state
 
-		def initialize(origin,destination)
+		def initialize(origin,destination) #locations
 			# @board = board
 			# @x = position[0]
 			# @y = position[1]
@@ -12,21 +12,22 @@ module Octi
  		end
 
 
-		def make
+		def make(position)
 		end
 	end
 
 	class Insert < Move
 		attr_accessor :pod, :prongs, :inserts
-		def initialize(game_state,position)
-			super
+		def initialize(x,y)
+			@x = x
+			@y = y
 		end
 
-		def make(x,y)
-			if !@origin.prongs[x][y]
-				@origin.prongs[x][y] = true
-				return self					
-			end
+		def make(position)
+			# if !@origin.prongs[x][y]
+			# 	@origin.prongs[x][y] = true
+			# 	return self					
+			# end
 		end
 
 	# class Insert < Move
@@ -66,17 +67,8 @@ module Octi
 			super
 		end
 
-		def make(i,j)
-			if @origin.prongs[i][j]
-				if ((0..5)===(@x+i) && (0..6)===(@y+j) && @board[@x+i][@y+j] == nil)
-					#make move here
-					@destination = @board[@x+i][@y+j]
-					#@origin = @destination
-					position[0] = @x+i
-					position[1] = @y+j
-					return self
-				end
-			end
+		def make(position)
+			#return a position
 		end
 
 =begin
@@ -109,10 +101,14 @@ module Octi
 	class Jump < Move
 		attr_accessor :pod, :prongs, :board
 		def initialize
-			@jumped_pods = []
-			@jump_sequence = []
+			super
+			# @jumped_pods = []
+			# @jump_sequence = []
 		end
 
+		def make(position)
+		end
+=begin
 		def make(i,j)
 			if @origin.prongs[i][j] && ((0..5)===(@x+2*i) && (0..6)===(@y+2*j))
 				if @board[@x+i][@y+j].is_a?(Pod) && @board[@x+2*i][@y+2*j] == nil
@@ -127,7 +123,7 @@ module Octi
 				end
 			end
 		end
-=begin
+
 		def make(game_state, position)
 			super
 			@origin.prongs.each_with_index do |row, i|
