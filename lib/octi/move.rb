@@ -2,13 +2,13 @@ module Octi
 	class Move
 		attr_accessor :pod, :prongs, :board, :game_state
 
-		def initialize(board,position)
-			@board = board
-			@x = position[0]
-			@y = position[1]
+		def initialize(origin,destination)
+			# @board = board
+			# @x = position[0]
+			# @y = position[1]
 			#@pod = position[0] #pod
-			@origin= @board[@x][@y]
-			@destination = @origin
+			@origin = origin
+			@destination = destination
  		end
 
 
@@ -62,7 +62,7 @@ module Octi
 
 	class Hop < Move
 		attr_accessor :pod, :prongs, :board
-		def initialize(game_state,position)
+		def initialize(origin,destination)
 			super
 		end
 
