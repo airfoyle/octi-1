@@ -12,22 +12,27 @@ module Octi
  		end
 
 
-		def make(position)
+		def execute_move(position)
+
 		end
 	end
 
 	class Insert < Move
 		attr_accessor :pod, :prongs, :inserts
-		def initialize(x,y)
+		def initialize(pod,x,y)
+			@origin = pod.dup
 			@x = x
 			@y = y
 		end
 
-		def make(position)
-			# if !@origin.prongs[x][y]
-			# 	@origin.prongs[x][y] = true
-			# 	return self					
-			# end
+		def execute_move(position)
+			new_pos = position.dup
+			board = position.pods.dup
+			podlocs = position.podlocs.dup
+			if !@origin.prongs[@x][@y]
+				@origin.prongs[@x][@y] = true
+				return self					
+			end
 		end
 
 	# class Insert < Move
@@ -67,8 +72,11 @@ module Octi
 			super
 		end
 
-		def make(position)
-			#return a position
+		def execute_move(position)
+			board = position.pods.dup
+			board[@destination.x][@destination.y] = board[@origin.x][@origin.y]
+			board[@origin.x][@origin.y] = nil
+			new_pos = Position.new(board)
 		end
 
 =begin
@@ -106,7 +114,8 @@ module Octi
 			# @jump_sequence = []
 		end
 
-		def make(position)
+		def execute_move(position)
+			
 		end
 =begin
 		def make(i,j)

@@ -21,7 +21,7 @@ module Octi
 				pod.prongs.each_with_index do |row, i|
 					row.each_with_index do |col, j|
 						if !pod.prongs[x][y]
-							inserts << Insert.new(x,y)				
+							inserts << Insert.new(pod,x,y)				
 						end
 					end
 				end	
