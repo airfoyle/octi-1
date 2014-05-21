@@ -1,21 +1,11 @@
 module Octi
 	class Game
 		def initialize
-			@game_state = @initial_game_state = GameTree.new.generate
+			board = Board.new(6,7)
+			initial_position = Position.new(board.board)
+			GameTree.new(initial_position)
 		end
 	end
-
-	def turn
-		if @game_state.final_state?
-		 	#describe_final_game_state
-		end
-		if @game_state.current_player == #??
-		  	turn
-		else
-		 	get_human_move
-		 	turn
-		end
- 	end
 end
 
 =begin

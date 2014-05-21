@@ -13,18 +13,18 @@ module Octi
 
 
 ### MINIMAX ALGO ###
-		def minimax (position, depth)
-			return maxmove(position, depth)
+		def minimax (position, player, depth)
+			return maxmove(position, player, depth)
 		end
 
-		def maxmove (position, depth)
-			if position.game_ended? || depth == 0
-				return value(position)
+		def maxmove (position, player, depth)
+			if position.game_ended?(player) || depth == 0
+				return evaluate_end(position)
 			else
 				best_move = nil #+infinity?
-				moves = position.legal_moves(@comp) #children
+				moves = position.legal_moves(player) #children
 				for move in moves
-					new_move = minmove(move.execute_move(position, depth -1))
+					new_move = minmove(move.execute_move(position), @human, depth-1)
 					if value(move) > value(best_move)
 						best_move = move
 					end
@@ -33,11 +33,11 @@ module Octi
 			end
 		end
 
-		def minmove(position)
+		def minmove(position, player, depth)
 			best_move = nil #-infinity?
-			moves = position.legal_moves(@human)
+			moves = position.legal_moves(player)
 			for move in moves
-				new_move = maxmove(move.execute_move(position))
+				new_move = maxmove(move.execute_move(position), @comp, depth)
 				if value(move) > value(best_move)
 					best_move = move
 				end 
@@ -46,44 +46,56 @@ module Octi
 		end
 
 		#heuristic evaluation function
-		def value(position)
+		def value(position, player)
 			
 			#distance to base
-			pods = position.pods
+			pods = position.pods #are scores player specific or do they take opponent into account
 			podlocs = position.podLocs
-			
-			for l in podlocs[@comp.index]
 
-			end
-
-			#number of pods
-			position.pods
+			#x number of pods
 			#prongs in reserve 
+			player.prongs_in_reserve
 			#prongs on board
-			comp_count = 0
-			human_count = 0
-			for l in podlocs[@comp.index]
+			number_of_pods = 0
+			distance_to_base = 100
+			prongs_on_board =0
+			mobility_arr = position.hops
+			for l in podlocs[player.index]
 				if pods[l.x][l.y].is_a?(Pod)
-					comp_count++
+					number_of_pods++
+					distance_to_base = distance(l, player, distance_to_base)
+					pod.prongs.each do |peg|
+						peg ? prongs_on_board++
+					end
 				end
 			end
-			for l in podlocs[@human.index]
-				if pods[l.x][l.y].is_a?(Pod)
-					human_count++
-				end
-			end
-			pod_count = comp_count - human_count	
-				#prong count
-
+			prong_count = prongs_in_reserve - prongs_on_board
+			mobility = mobility_arr.length
 			#prong distribution -mobility
 
 			return distance_to_base + number_of_pods + prong_count + mobility
 			#				
 		end	
 
-		def prongs_board(pods, podlocs)
-					
-		end		
+		def distance(l, player, distance_to_base)
+			if player  == @comp
+				1.upto(4) do |i|
+					dist = sqrt((l.x-1)**2+(l.y-i)**2)
+					if dist < distance_to_base
+						distance_to_base = dist
+					end
+				end
+			elsif player  == @comp
+				1.upto(4) do |i|
+					dist = sqrt((l.x-5)**2+(l.y-i)**2)
+					if dist < distance_to_base
+						distance_to_base = dist
+					end
+				end
+			end	
+
+			return distance_to_base	
+		end
 	end
 end
 
