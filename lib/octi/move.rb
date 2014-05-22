@@ -17,7 +17,7 @@ module Octi
 	end
 
 	class Insert < Move
-		attr_accessor :pod, :prongs, :inserts
+		attr_reader :pod, :prongs, :inserts
 		def initialize(pod,x,y,player)
 			@origin = pod.dup
 			@x = x
@@ -36,7 +36,7 @@ module Octi
 	end
 
 	class Hop < Move
-		attr_accessor :pod, :prongs, :board
+		attr_reader :pod, :prongs, :board
 		def initialize(origin,destination)
 			super
 		end
@@ -50,7 +50,7 @@ module Octi
 	end
 
 	class Jump < Move
-		attr_accessor :pod, :prongs, :board
+		attr_reader :pod, :prongs, :board
 		def initialize(origin, destination, jumped_pods)
 			super
 			@jumped_pods = jumped_pods

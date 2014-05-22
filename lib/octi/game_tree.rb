@@ -1,10 +1,9 @@
 module Octi
 	class GameTree
 
-		attr_accessor :comp, :human, :positions, :comp_pos, :board, :inserts,:pod
+		attr_reader :pod
 		
 		def initialize(board_position)
-
 		end
 
 		# def generate
@@ -45,6 +44,37 @@ module Octi
 			return best_move
 		end
 
+
+
+ 		def bestmove(position, player, depth)
+        # player is of type Player, position of type Board,
+        # depth of type int.
+                   if position.game_ended?
+                      return [nil, position.end_value()]
+                   elsif depth == 0
+                      return [nil, position.heuristic_value()]
+                   else
+                        best_move = nil
+                        best_value = Player.worst_value
+                        moves = position.legal_moves(player)
+                        for move in moves
+                                new_move, move_value =
+                                bestmove(move.execute_move(position),
+                                         player.other_player
+                                         depth - 1)
+                                if player.better_for(move_value, best_value)
+                                        best_move = new_move
+                                        best_value = move_value
+                                end
+                        end
+                        return [best_move, best_value]
+                end
+
+
+
+
+
+
 		#heuristic evaluation function
 		def value(position, player)
 			
@@ -54,18 +84,22 @@ module Octi
 
 			#x number of pods
 			#prongs in reserve 
-			player.prongs_in_reserve
+				#player.prongs_in_reserve
 			#prongs on board
 			number_of_pods = 0
 			distance_to_base = 100
-			prongs_on_board =0
+			prongs_on_board = 0
 			mobility_arr = position.hops
 			for l in podlocs[player.index]
 				if pods[l.x][l.y].is_a?(Pod)
 					number_of_pods++
 					distance_to_base = distance(l, player, distance_to_base)
-					pod.prongs.each do |peg|
-						peg ? prongs_on_board++
+					pod.prongs.each_with_index do |row, i|
+						row.each_with_index do |col, j|
+							if pod.prongs[i][j]
+								prongs_on_board++
+							end
+						end
 					end
 				end
 			end
@@ -74,7 +108,6 @@ module Octi
 			#prong distribution -mobility
 
 			return distance_to_base + number_of_pods + prong_count + mobility
-			#				
 		end	
 
 		def distance(l, player, distance_to_base)
@@ -93,9 +126,7 @@ module Octi
 					end
 				end
 			end	
-
 			return distance_to_base	
 		end
 	end
 end
-

@@ -59,28 +59,6 @@ module Octi
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
 				jump =jumpy(pod, jumped, l.x, l.y, l.x, l.y)
-=begin	
-				pod.prongs.each_with_index do |row, i|
-					row.each_with_index do |col, j|
-						# if pod.prongs[i][j] && ((0..5)===(@x+2*i) && (0..6)===(@y+2*j))
-						# 	if @pods[l.x+i][l.y+j].is_a?(Pod) && @pods[l.x+2*i][l.y+2*j] == nil
-						# 		jumped = @pods[l.x+i][l.y+j]
-								
-						# 		to = @pods[l.x+2*i][l.y+2*j]
-						# 		if from == nil
-						# 			from = pod
-						# 			jump << Jump.new(from, to, jumped)
-						# 		else
-						# 			jump<< Jump.new(from, to, jumped)
-						# 			jumps(player, from)
-						# 		end
-
-						# 	end
-						# end
-						jump = help(i,j, jumped, jump, nil)
-					end
-				end
-=end
 			end
 			captured(jump)
 			return jump
@@ -100,8 +78,6 @@ module Octi
 					else
 						return 
 					end
-
-
 				end
 			end
 
@@ -124,25 +100,6 @@ module Octi
 			end
 			
 		end
-
-		# def help(i,j, jumped, jump, from, target_x, target_y)
-		# 	if pod.prongs[i][j] && ((0..5)===(@x+2*i) && (0..6)===(@y+2*j)) #on board
-		# 		if @pods[target_x+i][target_y+j].is_a?(Pod) && @pods[target_x+2*i][target_y+2*j] == nil #empty target squre
-		# 			jumped = @pods[l.x+i][l.y+j]	#jumped pod					
-		# 			to = @pods[target_x+2*i][target_y+2*j]1	#target square
-		# 			if from == nil					#first jump in series?
-		# 				from = pod
-		# 				jump << Jump.new(from, to, jumped)
-		# 				help(l.x+2*i,l.x+2*j, jumped, jump, from)
-		# 			else							#mid-series
-		# 				jump << Jump.new(from, to, jumped)
-		# 				help(l.x+2*i,l.x+2*j, jumped, jump, from)
-		# 			end
-		# 		else
-		# 			return jump
-		# 		end
-		# 	end
-		# end
 
 		#return array of player's pod locations 
 		def find_pods_for_player(player)
