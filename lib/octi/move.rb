@@ -4,10 +4,6 @@ module Octi
 		attr_accessor :player
 
 		def initialize(origin,destination) #locations
-			# @board = board
-			# @x = position[0]
-			# @y = position[1]
-			#@pod = position[0] #pod
 			@origin = origin
 			@destination = destination
  		end
@@ -53,7 +49,7 @@ module Octi
 		attr_reader :pod, :prongs, :board
 		def initialize(origin, destination, jumped_pods)
 			super
-			@jumped_pods = jumped_pods
+			@jumped_pods = jumped_pods # num of pods jumped in position 
 		end
 
 		def execute_move(position)
@@ -63,8 +59,6 @@ module Octi
 			board[@origin.x][@origin.y] = nil
 			new_pos = Position.new(board)
 
-			if @jumped_pods.length > 1
-				#execute 
 		end	
 	end	
 end
