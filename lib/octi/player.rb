@@ -1,6 +1,6 @@
 module Octi
 	class Player 
-		attr_reader :comp, :human
+		attr_accessor :comp, :human, :index
 
 		def initialize(i)
 			@index = i
@@ -9,6 +9,10 @@ module Octi
 
 		def index
 			return @index
+		end
+
+		def prong_reserve
+			return @prong_reserve
 		end
 
 		def better_for(v1, v2)

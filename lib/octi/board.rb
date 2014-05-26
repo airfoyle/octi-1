@@ -1,9 +1,14 @@
 module Octi
 	class Board
-		attr_reader :board, :comp, :human, :positions
-		def initialize(width,height)
+		attr_accessor  :comp, :human, :board
+		def initialize(width, height, comp, human)
 			@board = Array.new(width) { Array.new(height, nil) }
-			
+			@comp = comp
+			@human = human
+			human_bases =[]
+			comp_bases =[]
+			@positions = []
+			@bases = Array.new
 			1.upto(4) do |i|
 				@board[1][i] = Pod.new(@human)
 				human_bases << Location.new(1,i)
@@ -14,6 +19,10 @@ module Octi
 			@positions[@comp.index] = comp_bases
 			@bases[@human.index] = human_bases 
 			@bases[@comp.index] = comp_bases			
+		end
+
+		def board
+			return @board
 		end
 
 		def base?(position) #take pod position [x,y]

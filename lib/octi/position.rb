@@ -3,13 +3,14 @@ module Octi
 		attr_accessor :comp, :human
 		attr_reader :bases
 		def initialize(pods)
-			@pods = pods.dup
+			@board_obj = pods.dup
+			@pods = pods.board.dup
 			@podLocs = Array.new() { Array.new(nil) }
-			@podLocs[comp.index] = find_pods_for_player(comp)
-			@podLocs[human.index] = find_pods_for_player(human)
+			@podLocs[@board_obj.comp.index] = find_pods_for_player(@board_obj.comp)
+			@podLocs[@board_obj.human.index] = find_pods_for_player(@board_obj.human)
 			@prongs = Array.new() { Array.new(nil) }
-			@prongs[comp.index] = comp.prong_reserve
-			@prongs[human.index] = human.prong_reserve
+			@prongs[@board_obj.comp.index] = @board_obj.comp.prong_reserve
+			@prongs[@board_obj.human.index] = @board_obj.human.prong_reserve
 		
 		end
 
@@ -20,7 +21,7 @@ module Octi
 
 		def prong_inserts(player)
 			#returns coordinates of a new prong 
-			inserts = []
+			insertds = []
 			for l in @podLocs[player.index]
 				pod = @pod[l.x][l.y]
 				pod.prongs.each_with_index do |row, i|
@@ -117,42 +118,35 @@ module Octi
 			podLocs
 			
 		end
-		def self.heuristic_value
-			
-			#distance to base
-			pods = self.pods #are scores player specific or do they take opponent into account
-			podlocs = self.podLocs
-
-			#x number of pods
-			#prongs in reserve 
-				#player.prongs_in_reserve
-			#prongs on board
-			number_of_pods = 0
+		def heuristic_value
+			c_number_of_pods = 0
+			h_number_of_pods = 0
 			distance_to_base = 100
-			prongs_on_board = 0
-			c_mobility_arr = self.hops(comp)
-			h_mobility_arr = self.hops(human)
-			for l in podlocs[comp.index]
-				if pods[l.x][l.y].is_a?(Pod)
-					c_number_of_pods++
+			c_prongs_on_board = 0
+			h_prongs_on_board = 0
+			c_mobility_arr = hops(@board_obj.comp)
+			h_mobility_arr = hops(@board_obj.human)
+			for l in @podlocs[@board_obj.comp.index]
+				if @pods[l.x][l.y].is_a?(Pod)
+					c_number_of_pods =c_number_of_pods +1
 					c_distance_to_base = distance(l, player, distance_to_base)
 					pod.prongs.each_with_index do |row, i|
 						row.each_with_index do |col, j|
 							if pod.prongs[i][j]
-								c_prongs_on_board++
+								c_prongs_on_board = c_prongs_on_board + 1
 							end
 						end
 					end
 				end
 			end
-			for l in podlocs[human.index]
-				if pods[l.x][l.y].is_a?(Pod)
-					h_number_of_pods++
+			for l in @podlocs[@board_obj.human.index]
+				if @pods[l.x][l.y].is_a?(Pod)
+					h_number_of_pods = h_number_of_pods + 1
 					h_distance_to_base = distance(l, player, distance_to_base)
 					pod.prongs.each_with_index do |row, i|
 						row.each_with_index do |col, j|
 							if pod.prongs[i][j]
-								h_prongs_on_board++
+								h_prongs_on_board = h_prongs_on_board+1
 							end
 						end
 					end

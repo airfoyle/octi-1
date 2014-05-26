@@ -1,9 +1,9 @@
 module Octi
 	class Move
 		attr_reader :pod, :prongs, :board, :game_state, 
-		attr_accessor :player
+		#attr_accessor :player
 
-		def initialize(origin,destination) #locations
+		def initialize(origin, destination) #locations
 			@origin = origin
 			@destination = destination
  		end
@@ -15,17 +15,19 @@ module Octi
 	class Insert < Move
 		attr_reader :pod, :prongs, :inserts
 		def initialize(pod,x,y,player)
-			@origin = pod.dup
+			@pod = pod.dup
 			@x = x
 			@y = y
 			@player = player
 		end
 
 		def execute_move(position)
-			@player.prong_reserve--
-			if !@origin.prongs[@x][@y]
-				@origin.prongs[@x][@y] = true
-				return position					
+			if !@pod.prongs[@x][@y]
+				@pod.prongs[@x][@y] = true
+				@player.prong_reserve--
+
+				new_pos = position.dup
+				return new_pos					
 			end
 		end
 
@@ -42,6 +44,7 @@ module Octi
 			board[@destination.x][@destination.y] = board[@origin.x][@origin.y]
 			board[@origin.x][@origin.y] = nil
 			new_pos = Position.new(board)
+			return new_pos
 		end	
 	end
 
@@ -58,7 +61,7 @@ module Octi
 			board[@destination.x][@destination.y] = board[@origin.x][@origin.y]
 			board[@origin.x][@origin.y] = nil
 			new_pos = Position.new(board)
-
+			return new_pos
 		end	
 	end	
 end
