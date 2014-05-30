@@ -15,28 +15,28 @@ module Octi
 	class Insert < Move
 		attr_reader :pod, :prongs, :inserts
 		def initialize(pod,x,y,player)
-			@pod = pod.dup
+			@pod_loc = pod #pod location
 			@x = x
 			@y = y
 			@player = player
 		end
 
 		def execute_move(position)
-			if !@pod.prongs[@x][@y]
-				@pod.prongs[@x][@y] = true
-				@player.prong_reserve--
-
-				new_pos = position.dup
-				return new_pos					
-			end
+			@player.prong_reserve--
+			pos_array = position.pods.clone
+			pod = pos_array[@pod_loc.x][@pod_loc.y]
+			pod.prongs[@x][@y] = true
+			new_pos = Position.new(pos_array)
+			return new_pos					
 		end
 
 	end
 
 	class Hop < Move
 		attr_reader :pod, :prongs, :board
-		def initialize(origin,destination)
-			super
+		def initialize(origin, destination)
+			@origin = origin
+			@destination = destination
 		end
 
 		def execute_move(position)

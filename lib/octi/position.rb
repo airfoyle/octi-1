@@ -1,10 +1,9 @@
 module Octi
 	class Position
-		attr_accessor :comp, :human
-		attr_reader :bases
+		attr_reader :comp, :human
 		def initialize(pods)
-			@board_obj = pods.dup
-			@pods = pods.board.dup
+			@board_obj = pods.clone
+			@pods = pods.board.clone
 			@podLocs = Array.new() { Array.new(nil) }
 			@podLocs[@board_obj.comp.index] = find_pods_for_player(@board_obj.comp)
 			@podLocs[@board_obj.human.index] = find_pods_for_player(@board_obj.human)
@@ -16,18 +15,37 @@ module Octi
 
 
 		def legal_moves(player)
-			return (prong_inserts(player) + hops(player) + jumps(player))
+			return [prong_inserts(player), hops(player), jumps(player)]
+		end
+
+		def has_prongs(pod, i, j)
+			if pod.prongs[i][j] == true && pod.prongs[i][j] != 0
+				return true
+			elsif pod.prongs[i][j] == 0
+				return 0
+			else
+				return false
+			end
+		end
+
+		def on_board(x,y)
+			if (0..5)===(x) && (0..6)===(y)
+				return true
+			else
+				return false
+			end
 		end
 
 		def prong_inserts(player)
 			#returns coordinates of a new prong 
-			insertds = []
+			inserts = []
+
 			for l in @podLocs[player.index]
-				pod = @pod[l.x][l.y]
+				pod = @pods[l.x][l.y]
 				pod.prongs.each_with_index do |row, i|
 					row.each_with_index do |col, j|
-						if !pod.prongs[x][y]
-							inserts << Insert.new(pod,x,y, player)				
+						if has_prongs(pod,i,j) == false
+							inserts << Insert.new(l,i,j, player)				
 						end
 					end
 				end	
@@ -42,10 +60,16 @@ module Octi
 				pod = @pods[l.x][l.y]  # pod of playerb
 				pod.prongs.each_with_index do |row, i|
 					row.each_with_index do |col, j|
-						if ((0..5)===(@x+i) && (0..6)===(@y+j) && @pods[l.x+i][l.y+j] == nil)
-							from = pod
-							to = @pods[l.x+i][l.y+j]
-							hops_total<< Hop.new(from, to)
+						if has_prongs(pod,i,j) == true
+							delta_i = i + 1
+							delta_j = j + 1
+							d = Location.new(l.x+delta_i, l.y+delta_j) # destination
+							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
+								from = Location.new(l.x,l.y)
+								to = Location.new(l.x+i, l.y+j)
+								puts pod.prongs
+								hops_total << Hop.new(l, d)
+							end
 						end
 					end
 				end
@@ -60,7 +84,7 @@ module Octi
 			jump = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				jump =jumpy(pod, jumped, l.x, l.y, l.x, l.y)
+				jump = jumpy(pod, jumped, l.x, l.y, l.x, l.y)
 			end
 			#captured(jump)
 			return captured(jump)
@@ -69,7 +93,7 @@ module Octi
 		def jumpy(pod, jumped_p, start_x, start_y, curr_x, curr_y)
 			pod.prongs.each_with_index do |row, i|
 				row.each_with_index do |col, j|
-					if pod.prongs[i][j] && ((0..5)===(curr_x+2*i) && (0..6)===(curr_y+2*j)) #on board
+					if (has_prongs(pod,i,j) == true) && ((0..5)===(curr_x+2*i) && (0..6)===(curr_y+2*j)) #on board
 						if @pods[curr_x+i][curr_y+j].is_a?(Pod) && @pods[curr_x+2*i][curr_y+2*j] == nil 
 							from = @pods[start_x+i][start_y+j]
 							to = @pods[curr_x+2*i][curr_y+2*j]
@@ -77,20 +101,22 @@ module Octi
 
 							return Jump.new(from, to, jumped_p), jumpy(pod, jumped_p, start_x, start_y, curr_x+2*i, curr_y+2*j)
 						end
-					else
-						return 
 					end
 				end
 			end
+			return []
 		end
 
 		def captured(jumps)
+			if !jumps
+				return jump
+			end
 			for jump in jumps
 				if jump.jumped_p.empty?
 					return 
 				else
 					for i in 0..(jump.jumped_p.length) do
-						new_jump = jump.dup
+						new_jump = jump.clone
 						new_jump.jumped_p = a.combination(i).to_a
 						idx = jumps.index(jump)
 						jumps.insert(idx, new_jump)
@@ -111,6 +137,7 @@ module Octi
 					end
 				end
 			end
+			return results.flatten
 		end
 
 		def count_prongs(player)
@@ -192,16 +219,16 @@ module Octi
 
 		def end_value
 			#if pod is on enemy base
-			podLocs[comp.index].each do |pod| 
-				bases[human.index].each do |base|
+			@podLocs[@board_obj.comp.index].each do |pod| 
+				@board_obj.bases[@board_obj.human.index].each do |base|
 					if pod == base
 						return 100
 					end
 				end
 			end
 
-			podLocs[human.index].each do |pod| 
-				bases[comp.index].each do |base|
+			@podLocs[@board_obj.human.index].each do |pod| 
+				@board_obj.bases[@board_obj.comp.index].each do |base|
 					if pod == base
 						return -100
 					end

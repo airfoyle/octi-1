@@ -1,6 +1,6 @@
 module Octi
 	class Player 
-		attr_accessor :comp, :human, :index
+		attr_reader :comp, :human, :index
 
 		def initialize(i)
 			@index = i
