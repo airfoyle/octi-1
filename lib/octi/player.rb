@@ -1,7 +1,7 @@
 module Octi
 	class Player 
 		attr_reader :comp, :human, :index
-
+		attr_accessor :prong_reserve
 		def initialize(i)
 			@index = i
 			@prong_reserve = 32
@@ -40,5 +40,14 @@ module Octi
 				return comp
 			end
 		end
+
+		def set_bases(bases)
+			@bases = bases
+		end
+
+		def bases
+			return @bases
+		end
+
 	end
 end

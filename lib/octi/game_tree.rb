@@ -18,7 +18,7 @@ module Octi
 			  return [nil, position.heuristic_value(player)]
 			else
 				best_move = nil
-				best_value = Player.worst_value		
+				best_value = player.worst_value		
 				moves = position.legal_moves(player)
 				for move in moves
 				    new_move, move_value =

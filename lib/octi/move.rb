@@ -15,18 +15,27 @@ module Octi
 	class Insert < Move
 		attr_reader :pod, :prongs, :inserts
 		def initialize(pod,x,y,player)
-			@pod_loc = pod #pod location
+			@origin = pod #pod location
 			@x = x
 			@y = y
 			@player = player
 		end
 
 		def execute_move(position)
-			@player.prong_reserve--
-			pos_array = position.pods.clone
-			pod = pos_array[@pod_loc.x][@pod_loc.y]
+			count = @player.prong_reserve-1
+			new_array = position.pods.clone
+			if @player == position.comp
+				position.comp.prong_reserve = count
+			else
+				position.human.prong_reserve = count
+			end
+			#ap position
+			#puts "old pos: #{position.pods[@origin.x][@origin.y]}"
+			#puts "new pos: #{new_array[@origin.x][@origin.y]}"
+			pod = new_array[@origin.x][@origin.y]
 			pod.prongs[@x][@y] = true
-			new_pos = Position.new(pos_array)
+			new_pos = Position.new(new_array, position.comp, position.human)
+
 			return new_pos					
 		end
 
@@ -40,10 +49,10 @@ module Octi
 		end
 
 		def execute_move(position)
-			board = position.pods.dup
-			board[@destination.x][@destination.y] = board[@origin.x][@origin.y]
-			board[@origin.x][@origin.y] = nil
-			new_pos = Position.new(board)
+			new_array = position.pods.clone
+			new_array[@destination.x][@destination.y] = new_array[@origin.x][@origin.y]
+			new_array[@origin.x][@origin.y] = nil
+			new_pos = Position.new(new_array, position.comp, position.human)
 			return new_pos
 		end	
 	end
@@ -51,16 +60,17 @@ module Octi
 	class Jump < Move
 		attr_reader :pod, :prongs, :board
 		def initialize(origin, destination, jumped_pods)
-			super
+			@origin = origin
+			@destination = destination
 			@jumped_pods = jumped_pods # num of pods jumped in position 
 		end
 
 		def execute_move(position)
 			start = @origin
-			board = position.pods.dup
-			board[@destination.x][@destination.y] = board[@origin.x][@origin.y]
-			board[@origin.x][@origin.y] = nil
-			new_pos = Position.new(board)
+			new_array = position.pods.clone
+			new_array[@destination.x][@destination.y] = new_array[@origin.x][@origin.y]
+			new_array[@origin.x][@origin.y] = nil
+			new_pos = Position.new(new_array, position.comp, position.human)
 			return new_pos
 		end	
 	end	

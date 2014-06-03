@@ -1,5 +1,6 @@
 module Octi
 	class OptionHash
+		attr_reader :move
 		def initialize(moves)
 			@all_moves = moves
 			@inserts = moves[0]
@@ -18,14 +19,16 @@ module Octi
 			end
 		end
 
-		def choose_key(num)
+		def choose_key(num, ui)
 			puts "Select the #{@h[num][1]} you wish to execute"
-			
+			i = 1
 			for move in @h[num][0]
-				i = 1
-				puts "#{i}: #{move}"
+				puts "#{i}: #{move.inspect}"
 				i = i +1
 			end
+			choice = ui.get_input("").to_i
+
+			return @h[num][0][choice-1]
 		end
 	end
 end

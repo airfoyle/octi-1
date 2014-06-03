@@ -1,4 +1,5 @@
 require_relative "octi/version"
+require "awesome_print"
 
 module Octi
 end

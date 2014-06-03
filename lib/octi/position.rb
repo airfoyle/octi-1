@@ -1,18 +1,33 @@
 module Octi
 	class Position
-		attr_reader :comp, :human
-		def initialize(pods)
-			@board_obj = pods.clone
-			@pods = pods.board.clone
-			@podLocs = Array.new() { Array.new(nil) }
-			@podLocs[@board_obj.comp.index] = find_pods_for_player(@board_obj.comp)
-			@podLocs[@board_obj.human.index] = find_pods_for_player(@board_obj.human)
-			@prongs = Array.new() { Array.new(nil) }
-			@prongs[@board_obj.comp.index] = @board_obj.comp.prong_reserve
-			@prongs[@board_obj.human.index] = @board_obj.human.prong_reserve
-		
+		attr_reader :board_obj
+		def initialize(pods, comp, human)
+			@pods = pods
+			@comp = comp
+			@human = human
+			@podLocs = Array.new() { Array.new() }
+			@podLocs[@comp.index] = find_pods_for_player(@comp)
+			@podLocs[@human.index] = find_pods_for_player(@human)
+			@prongs = Array.new() { Array.new() }
+			@prongs[@comp.index] = @comp.prong_reserve
+			@prongs[@human.index] = @human.prong_reserve		
 		end
 
+		def podLocs
+			return @podLocs
+		end
+
+		def pods
+			return @pods
+		end
+
+		def comp
+			return @comp
+		end
+
+		def human
+			return @human
+		end
 
 		def legal_moves(player)
 			return [prong_inserts(player), hops(player), jumps(player)]
@@ -39,12 +54,11 @@ module Octi
 		def prong_inserts(player)
 			#returns coordinates of a new prong 
 			inserts = []
-
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				pod.prongs.each_with_index do |row, i|
-					row.each_with_index do |col, j|
-						if has_prongs(pod,i,j) == false
+				pod.prongs.each_with_index do |col, i|
+					col.each_with_index do |has_prong, j|
+						if !has_prong && !(i == 1 && j == 1)
 							inserts << Insert.new(l,i,j, player)				
 						end
 					end
@@ -58,16 +72,15 @@ module Octi
 			hops_total = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]  # pod of playerb
-				pod.prongs.each_with_index do |row, i|
-					row.each_with_index do |col, j|
-						if has_prongs(pod,i,j) == true
+				pod.prongs.each_with_index do |col, i|
+					col.each_with_index do |has_prong, j|
+						if has_prong && !(i == 1 && j == 1)
 							delta_i = i + 1
 							delta_j = j + 1
 							d = Location.new(l.x+delta_i, l.y+delta_j) # destination
 							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
 								from = Location.new(l.x,l.y)
 								to = Location.new(l.x+i, l.y+j)
-								puts pod.prongs
 								hops_total << Hop.new(l, d)
 							end
 						end
@@ -91,9 +104,9 @@ module Octi
 		end
 
 		def jumpy(pod, jumped_p, start_x, start_y, curr_x, curr_y)
-			pod.prongs.each_with_index do |row, i|
-				row.each_with_index do |col, j|
-					if (has_prongs(pod,i,j) == true) && ((0..5)===(curr_x+2*i) && (0..6)===(curr_y+2*j)) #on board
+			pod.prongs.each_with_index do |col, i|
+				col.each_with_index do |has_prong, j|
+					if (has_prong && !(i == 1 && j == 1)) && ((0..5)===(curr_x+2*i) && (0..6)===(curr_y+2*j)) #on board
 						if @pods[curr_x+i][curr_y+j].is_a?(Pod) && @pods[curr_x+2*i][curr_y+2*j] == nil 
 							from = @pods[start_x+i][start_y+j]
 							to = @pods[curr_x+2*i][curr_y+2*j]
@@ -130,49 +143,50 @@ module Octi
 		#return array of player's pod locations 
 		def find_pods_for_player(player)
 			results = []
-			@pods.each_with_index do |row, i|
-				row.each_with_index do |col, j|	
-					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == player 
+			@pods.each_with_index do |col, i|
+				col.each_with_index do |row, j|	
+					
+					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == @comp 
+					
 						results << Location.new(i,j) #consider returning just location
 					end
 				end
 			end
-			return results.flatten
+			return results#.flatten
 		end
 
-		def count_prongs(player)
-			count = 0
-			podLocs
-			
-		end
-		def heuristic_value
+		
+		def heuristic_value(player)
 			c_number_of_pods = 0
 			h_number_of_pods = 0
 			distance_to_base = 100
 			c_prongs_on_board = 0
 			h_prongs_on_board = 0
-			c_mobility_arr = hops(@board_obj.comp)
-			h_mobility_arr = hops(@board_obj.human)
-			for l in @podlocs[@board_obj.comp.index]
+			c_mobility_arr = hops(@comp)
+			h_mobility_arr = hops(@human)
+
+			for l in @podLocs[@comp.index]
 				if @pods[l.x][l.y].is_a?(Pod)
+					pod = @pods[l.x][l.y]
 					c_number_of_pods =c_number_of_pods +1
 					c_distance_to_base = distance(l, player, distance_to_base)
-					pod.prongs.each_with_index do |row, i|
-						row.each_with_index do |col, j|
-							if pod.prongs[i][j]
+					pod.prongs.each_with_index do |col, i|
+						col.each_with_index do |has_prong, j|
+							if has_prong && !(i == 1 && j == 1)
 								c_prongs_on_board = c_prongs_on_board + 1
 							end
 						end
 					end
 				end
 			end
-			for l in @podlocs[@board_obj.human.index]
+			for l in @podLocs[@human.index]
 				if @pods[l.x][l.y].is_a?(Pod)
+					pod = @pods[l.x][l.y]
 					h_number_of_pods = h_number_of_pods + 1
 					h_distance_to_base = distance(l, player, distance_to_base)
-					pod.prongs.each_with_index do |row, i|
-						row.each_with_index do |col, j|
-							if pod.prongs[i][j]
+					pod.prongs.each_with_index do |col, i|
+						col.each_with_index do |has_prong, j|
+							if has_prong && !(i == 1 && j == 1)
 								h_prongs_on_board = h_prongs_on_board+1
 							end
 						end
@@ -181,19 +195,20 @@ module Octi
 			end
 
 
-			prong_count = (comp.prongs_in_reserve - c_prongs_on_board) - (human.prongs_in_reserve - h_prongs_on_board)
+			prong_count = (@comp.prong_reserve - c_prongs_on_board) - (@human.prong_reserve - h_prongs_on_board)
 			mobility = c_mobility_arr.length + h_mobility_arr.length
 			number_of_pods = c_number_of_pods - h_number_of_pods
 			distance_to_base = (h_distance_to_base - c_distance_to_base)*10
 			#prong distribution -mobility
-
+			val = distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
+			ap "val = #{val}"
 			return distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
 		end	
 
 		def distance(l, player, distance_to_base)
 			if player  == @comp
 				1.upto(4) do |i|
-					dist = sqrt((l.x-1)**2+(l.y-i)**2)
+					dist = Math.sqrt((l.x-1)**2+(l.y-i)**2)
 					if dist < distance_to_base
 						distance_to_base = dist
 					end
@@ -219,16 +234,16 @@ module Octi
 
 		def end_value
 			#if pod is on enemy base
-			@podLocs[@board_obj.comp.index].each do |pod| 
-				@board_obj.bases[@board_obj.human.index].each do |base|
+			@podLocs[@comp.index].each do |pod| 
+				@human.bases.each do |base|
 					if pod == base
 						return 100
 					end
 				end
 			end
 
-			@podLocs[@board_obj.human.index].each do |pod| 
-				@board_obj.bases[@board_obj.comp.index].each do |base|
+			@podLocs[@human.index].each do |pod| 
+				@comp.bases.each do |base|
 					if pod == base
 						return -100
 					end
@@ -240,4 +255,3 @@ module Octi
 		end
 	end
 end
-

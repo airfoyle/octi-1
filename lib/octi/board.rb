@@ -2,7 +2,7 @@ module Octi
 	class Board
 		attr_reader  :comp, :human, :board, :bases
 		def initialize(width, height, comp, human)
-			@board = Array.new(width) { Array.new(height, nil) }
+			@board = Array.new(height) { Array.new(width, nil) }
 			@comp = comp
 			@human = human
 			human_bases =[]
@@ -18,12 +18,24 @@ module Octi
 			end 
 			@positions[@human.index] = human_bases 
 			@positions[@comp.index] = comp_bases
-			@bases[@human.index] = human_bases 
-			@bases[@comp.index] = comp_bases			
+			@human.set_bases(human_bases) 
+			@comp.set_bases(comp_bases)			
 		end
+
+		# def positions(player)
+			
+		# end
 
 		def board
 			return @board
+		end
+
+		def comp
+			return @comp
+		end
+
+		def human
+			return @human
 		end
 
 		def base?(position) #take pod position [x,y]
