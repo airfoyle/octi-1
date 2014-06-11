@@ -1,8 +1,7 @@
 module Octi
 	class Position
-		attr_reader :board_obj
 		def initialize(pods, comp, human)
-			@pods = pods
+			@pods = pods.clone
 			@comp = comp
 			@human = human
 			@podLocs = Array.new() { Array.new() }
@@ -75,8 +74,10 @@ module Octi
 				pod.prongs.each_with_index do |col, i|
 					col.each_with_index do |has_prong, j|
 						if has_prong && !(i == 1 && j == 1)
-							delta_i = i + 1
-							delta_j = j + 1
+							delta_x = i -1
+							delta_y = j-1
+							delta_i = delta_x + 1
+							delta_j = delta_y + 1
 							d = Location.new(l.x+delta_i, l.y+delta_j) # destination
 							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
 								from = Location.new(l.x,l.y)
@@ -94,49 +95,68 @@ module Octi
 		def jumps(player)
 			#returns origin and destination
 			jumped = []
-			jump = []
+			jumps = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				jump = jumpy(pod, jumped, l.x, l.y, l.x, l.y)
+				jumps << jumpy(pod, jumped, l,l, player)
 			end
-			#captured(jump)
-			return captured(jump)
+			ap jumps
+			return jumps.flatten#captured(jumps.flatten)
 		end
 
-		def jumpy(pod, jumped_p, start_x, start_y, curr_x, curr_y)
+		def jumpy(pod, jumped_p, s, c, player)
+			results = Array.new
+			avoid = []
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |has_prong, j|
-					if (has_prong && !(i == 1 && j == 1)) && ((0..5)===(curr_x+2*i) && (0..6)===(curr_y+2*j)) #on board
-						if @pods[curr_x+i][curr_y+j].is_a?(Pod) && @pods[curr_x+2*i][curr_y+2*j] == nil 
-							from = @pods[start_x+i][start_y+j]
-							to = @pods[curr_x+2*i][curr_y+2*j]
-							jumped_p << @pods[curr_x+i][curr_y+j]
 
-							return Jump.new(from, to, jumped_p), jumpy(pod, jumped_p, start_x, start_y, curr_x+2*i, curr_y+2*j)
+					if (has_prong && !(i == 1 && j == 1)) #on board
+						#on_board(curr_x+2*i, curr_y+2*j
+						delta_x = i -1
+						delta_y = j-1
+						delta_i = delta_x*2
+						delta_j = delta_y*2
+						d = Location.new(c.x+delta_i, c.y+delta_j) #destination 
+						pod_loc = Location.new(c.x+delta_x, c.y+delta_y)
+						if on_board(d.x, d.y) && @pods[c.x+delta_x][c.y+delta_y].is_a?(Pod)&& 
+							@pods[d.x][d.y] == nil && !(avoid.include? (pod_loc ))
+							
+							#from is origin before jump sequence
+							from = Location.new(s.x,s.y)
+							
+							#to is a jump destination in sequence
+							to = Location.new(d.x,d.y) 
+
+							#player can jump oppenent's pods and his own pods
+							jumped_p << pod_loc
+							avoid << pod_loc 
+
+							results << Jump.new(from, to, jumped_p)
+							results << jumpy(pod, jumped_p, s, d, player)
+					
 						end
 					end
 				end
 			end
-			return []
+			return results.flatten
 		end
 
 		def captured(jumps)
-			if !jumps
-				return jump
+			puts jumps
+			if jumps.empty?
+				return jumps
 			end
 			for jump in jumps
-				if jump.jumped_p.empty?
-					return 
-				else
-					for i in 0..(jump.jumped_p.length) do
-						new_jump = jump.clone
-						new_jump.jumped_p = a.combination(i).to_a
-						idx = jumps.index(jump)
-						jumps.insert(idx, new_jump)
-					#	jumps << new_jump
-					end
+				for i in 0..(jump.jumped_pods.length) do
+					ap i
+					new_jump = jump.clone
+					new_jump.jumped_pods.combination(i).to_a
+					idx = jumps.index(jump)
+					jumps.insert(idx, new_jump)
+					jumps << new_jump
 				end
 			end
+			puts "returning..."
 			return jumps
 		end
 
@@ -146,7 +166,7 @@ module Octi
 			@pods.each_with_index do |col, i|
 				col.each_with_index do |row, j|	
 					
-					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == @comp 
+					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == player
 					
 						results << Location.new(i,j) #consider returning just location
 					end
@@ -201,7 +221,7 @@ module Octi
 			distance_to_base = (h_distance_to_base - c_distance_to_base)*10
 			#prong distribution -mobility
 			val = distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
-			ap "val = #{val}"
+			#ap "val = #{val}"
 			return distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
 		end	
 

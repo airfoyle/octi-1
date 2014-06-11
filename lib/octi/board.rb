@@ -11,10 +11,10 @@ module Octi
 			@bases = Array.new
 
 			1.upto(4) do |i|
-				@board[1][i] = Pod.new(@human)
-				human_bases << Location.new(1,i)
-				@board[5][i] = Pod.new(@comp)
-				comp_bases << Location.new(5,i)
+				@board[i][1] = Pod.new(@comp)
+				comp_bases << Location.new(i,1)
+				@board[i][5] = Pod.new(@human)
+				human_bases << Location.new(i,5)
 			end 
 			@positions[@human.index] = human_bases 
 			@positions[@comp.index] = comp_bases

@@ -21,9 +21,11 @@ module Octi
 				ap "Your options ..."
 				turn(@human, position)
 				ap "Now it's my turn..."
-				turn(@comp, position)
-				ap position.pods
-				run(position) 
+				comp_pos = Position.new(position.pods.clone, @comp, @human)
+				#move = 
+				turn(@comp, comp_pos)
+				#new_pos = move.execute_move(position)
+				#run(position) 
 			end
 		end
 		def other_player(player)
@@ -34,9 +36,10 @@ module Octi
 			end
 		end
 		def bestmove(position, player, depth)
+			ap "Entering bestmove[depth: #{depth}]"
 			if position.game_ended?	
-				ap "ENDED"				
-			  return winner(position.end_value())#[nil, position.end_value()]	
+				puts "game over"
+			  return [nil, position.end_value()]	
 			elsif depth == 0
 			  return [nil, position.heuristic_value(player)]
 			else
@@ -48,23 +51,32 @@ module Octi
 				    bestmove(move.execute_move(position),
 				             other_player(player), #player.other_player
 				             depth - 1)
+				    # puts "mv = #{move_value}"
+				    # puts "new_m = #{new_move}"
 				    if player.better_for(move_value, best_value)
-				            best_move = new_move
+				            best_move = move#new_move
 				            best_value = move_value
 				    end
 				end
-				return [best_move, best_value]
+				return print_bestmove(best_move, best_value, depth)
 	        end
 	    end	
+	    def print_bestmove(m, v, d)
+	    	puts "Exiting bestmove[depth= #{d}]|best_move= #{m}|best_value= #{v}"
+	    	return [m,v]
+	    end
+
 		def turn(player, position)
 			if player.index == 0
+
 				val = bestmove(position,player,2)
-				puts "res: #{val}"
+				return val[0]
 			elsif player.index == 1
 				options_prompt = get_options(position)
 				move_choice = @ui.get_input(options_prompt.print_options) 
 				final_choice = options_prompt.choose_key(move_choice.to_i, @ui)
 				new_pos = final_choice.execute_move(position)
+				return new_pos
 			end
 		end
 

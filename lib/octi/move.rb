@@ -62,7 +62,7 @@ module Octi
 		def initialize(origin, destination, jumped_pods)
 			@origin = origin
 			@destination = destination
-			@jumped_pods = jumped_pods # num of pods jumped in position 
+			@jumped_pods = jumped_pods # locations of pods jumped in board position 
 		end
 
 		def execute_move(position)
@@ -73,5 +73,9 @@ module Octi
 			new_pos = Position.new(new_array, position.comp, position.human)
 			return new_pos
 		end	
+
+		def jumped_pods
+			return @jumped_pods
+		end
 	end	
 end

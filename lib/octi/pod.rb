@@ -5,7 +5,10 @@ module Octi
 		def initialize(player)
 			@prongs = Array.new(3) { Array.new(3, false) }
 			@prongs[1][1] = 0
-			self.player = player
+			@player = player
+		end
+		def player
+			return @player
 		end
 	end
 end
