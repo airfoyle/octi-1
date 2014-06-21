@@ -40,13 +40,20 @@ module Octi
 				return comp
 			end
 		end
-
 		def set_bases(bases)
 			@bases = bases
 		end
 
 		def bases
 			return @bases
+		end
+		
+		def set_opponent_bases(bases)
+			@opponent_bases = bases
+		end
+
+		def opponent_bases
+			return @opponent_bases
 		end
 
 	end

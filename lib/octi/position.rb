@@ -1,10 +1,11 @@
 module Octi
 	class Position
 		def initialize(pods, comp, human)
-			@pods = pods.clone
+			@pods = DeepClone.clone pods
 			@comp = comp
 			@human = human
 			@podLocs = Array.new() { Array.new() }
+			
 			@podLocs[@comp.index] = find_pods_for_player(@comp)
 			@podLocs[@human.index] = find_pods_for_player(@human)
 			@prongs = Array.new() { Array.new() }
@@ -104,7 +105,6 @@ module Octi
 					jumps << a_jump
 				end
 			end
-			puts "jumps:#{jumps}"
 			return jumps#captured(jumps.flatten)
 		end
 
@@ -148,11 +148,11 @@ module Octi
 			if jumps.empty?
 				return jumps
 			end
-			puts "jump len = #{jumps.length}"
+			#puts "jump len = #{jumps.length}"
 			for jump in jumps
 
 				for i in 0..(jump.jumped_pods.length-1) do
-					new_jump = jump.clone # create a new jump
+					new_jump = DeepClone.clone jump # create a new jump
 
 					#give new jump one of the combinations of jumped pods
 					new_jump.jumped_pods = new_jump.jumped_pods.combination(i).to_a 
@@ -165,7 +165,7 @@ module Octi
 					jumps << new_jump
 				end
 			end
-			puts "returning..."
+			#puts "returning..."
 			return jumps
 		end
 
@@ -175,8 +175,7 @@ module Octi
 			@pods.each_with_index do |col, i|
 				col.each_with_index do |row, j|	
 					
-					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player == player
-					
+					if @pods[i][j].is_a?(Pod) &&  @pods[i][j].player.index == player.index
 						results << Location.new(i,j) #consider returning just location
 					end
 				end
@@ -194,42 +193,52 @@ module Octi
 		
 		def heuristic_value(player)
 			#change variables to rep player vs opponent
+			opponent =  other_player(player)
+
 			player_number_of_pods = 0
 			opponent_number_of_pods = 0
-			distance_to_base = 100
+			
+			player_distance_to_base = 100
+			opponent_distance_to_base = 100
+
 			player_prongs_on_board = 0
 			opponent_prongs_on_board = 0
 			player_mobility_arr = hops(player)
 			opponent_mobility_arr = hops(other_player(player))
 
-			for l in @podLocs[@comp.index]
+			for l in @podLocs[player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
 					player_number_of_pods = player_number_of_pods + 1
 					#return shortest distance aka best option for player
-					dist = distance(l, player, distance_to_base)
-					if dist <= c_distance_to_base 
-						 c_distance_to_base = dist
+					dist = distance(l, player, player_distance_to_base)
+					if dist <= player_distance_to_base 
+						 player_distance_to_base = dist
 					end
 
 					pod.prongs.each_with_index do |col, i|
 						col.each_with_index do |has_prong, j|
 							if has_prong && !(i == 1 && j == 1)
-								c_prongs_on_board = c_prongs_on_board + 1
+								player_prongs_on_board = player_prongs_on_board + 1
 							end
 						end
 					end
 				end
 			end
-			for l in @podLocs[@human.index]
+			
+			for l in @podLocs[opponent.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
-					h_number_of_pods = h_number_of_pods + 1
-					h_distance_to_base = distance(l, player, distance_to_base)
+					opponent_number_of_pods = opponent_number_of_pods + 1
+					
+					dist = distance(l, player, opponent_distance_to_base)
+					if dist <= opponent_distance_to_base 
+						 opponent_distance_to_base = dist
+					end
 					pod.prongs.each_with_index do |col, i|
 						col.each_with_index do |has_prong, j|
 							if has_prong && !(i == 1 && j == 1)
-								h_prongs_on_board = h_prongs_on_board+1
+								opponent_prongs_on_board = opponent_prongs_on_board+1
 							end
 						end
 					end
@@ -237,39 +246,48 @@ module Octi
 			end
 
 
-			prong_count = (@comp.prong_reserve - c_prongs_on_board) - (@human.prong_reserve - h_prongs_on_board)
-			mobility = c_mobility_arr.length + h_mobility_arr.length
-			number_of_pods = c_number_of_pods - h_number_of_pods
-			puts "h_dist: #{h_distance_to_base}|c_dist: #{c_distance_to_base}"
+			prong_count = (player.prong_reserve - player_prongs_on_board) - (opponent.prong_reserve - opponent_prongs_on_board)
+			mobility = player_mobility_arr.length + opponent_mobility_arr.length
+			number_of_pods = player_number_of_pods - opponent_number_of_pods
+			#puts "o_dist: #{opponent_distance_to_base}|player_dist: #{player_distance_to_base}"
 			#debugger
-			distance_to_base = (h_distance_to_base - c_distance_to_base)*10
+			total_distance_to_base = (player_distance_to_base - opponent_distance_to_base)*10
 			#prong distribution -mobility
-			val = distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
+			val = total_distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
 			#ap "val = #{val}"
-			return distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
+			return val
 		end	
 
 		def distance(l, player, distance_to_base)
-		#Calculates distance to opponent's base
+	 	#Calculates distance to opponent's base
 
-			
-			if player  == @comp
-				1.upto(4) do |i|
-					dist = Math.sqrt((l.x-5)**2+(l.y-i)**2)
-					if dist < distance_to_base
-						distance_to_base = dist
-					end
+			for base in player.opponent_bases
+				dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
+				if dist < distance_to_base
+					distance_to_base = dist
 				end
-			elsif player  == @human
-				puts "working for dist hu".colorize(:red)
-				1.upto(4) do |i|
-					dist = sqrt((l.x-1)**2+(l.y-i)**2)
-					if dist < distance_to_base
-						distance_to_base = dist #negative
-					end
-				end
-			end	
-			puts "This is distance_to_base--> #{distance_to_base}".colorize(:green)
+			end
+
+
+
+
+			# if player  == @comp
+			# 	1.upto(4) do |i|
+			# 		dist = Math.sqrt((l.x-5)**2+(l.y-i)**2)
+			# 		if dist < distance_to_base
+			# 			distance_to_base = dist
+			# 		end
+			# 	end
+			# elsif player  == @human
+			# 	puts "working for dist hu".colorize(:red)
+			# 	1.upto(4) do |i|
+			# 		dist = sqrt((l.x-1)**2+(l.y-i)**2)
+			# 		if dist < distance_to_base
+			# 			distance_to_base = dist #negative
+			# 		end
+			# 	end
+			# end	
+			#puts "player #{player.index}'s' distance_to_base--> #{distance_to_base}".colorize(:green)
 			return distance_to_base	
 		end
 

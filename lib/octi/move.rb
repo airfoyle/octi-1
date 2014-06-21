@@ -23,7 +23,7 @@ module Octi
 
 		def execute_move(position)
 			count = @player.prong_reserve-1
-			new_array = position.pods.clone
+			new_array = DeepClone.clone position.pods
 			if @player == position.comp
 				position.comp.prong_reserve = count
 			else
@@ -49,7 +49,7 @@ module Octi
 		end
 
 		def execute_move(position)
-			new_array = position.pods.clone
+			new_array = DeepClone.clone position.pods
 			new_array[@destination.x][@destination.y] = new_array[@origin.x][@origin.y]
 			new_array[@origin.x][@origin.y] = nil
 			new_pos = Position.new(new_array, position.comp, position.human)
@@ -67,7 +67,7 @@ module Octi
 
 		def execute_move(position)
 			start = @origin
-			new_array = position.pods.clone
+			new_array = DeepClone.clone position.pods
 			new_array[@destination.x][@destination.y] = new_array[@origin.x][@origin.y]
 			new_array[@origin.x][@origin.y] = nil
 			new_pos = Position.new(new_array, position.comp, position.human)

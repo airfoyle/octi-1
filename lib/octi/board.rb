@@ -18,6 +18,10 @@ module Octi
 			end 
 			@positions[@human.index] = human_bases 
 			@positions[@comp.index] = comp_bases
+
+			@human.set_opponent_bases(comp_bases) 
+			@comp.set_opponent_bases(human_bases)
+
 			@human.set_bases(human_bases) 
 			@comp.set_bases(comp_bases)			
 		end

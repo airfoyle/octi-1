@@ -18,14 +18,11 @@ module Octi
 			if current_position.game_ended?
 				ap winner(current_position.end_value)
 			else
-				#ap "Your options ..."		#-move to turn
-				next_move = turn(player_to_move, current_position) #return move
-				#ap "Now it's my turn..."		#-move to turn
-				debugger
-				c_p= next_move.execute_move(current_position)
-				current_position =c_p
-				#move = 
-				#turn(@comp, comp_pos)
+				#return move
+				next_move = turn(player_to_move, current_position)
+				puts next_move 
+				c_p = next_move.execute_move(current_position)
+				current_position = c_p
 				#new_pos = move.execute_move(position)	
 				run(current_position, other_player(player_to_move)) 
 			end
@@ -38,7 +35,7 @@ module Octi
 			end
 		end
 		def bestmove(position, player, depth)
-			ap "Entering bestmove[depth: #{depth}]"
+		#	puts "Entering bestmove[depth: #{depth}]".colorize(:blue)
 			if position.game_ended?	
 				puts "game over"
 			  return [nil, position.end_value()]	
@@ -64,20 +61,19 @@ module Octi
 	        end
 	    end	
 	    def print_bestmove(m, v, d)
-	    	puts "Exiting bestmove[depth= #{d}]|best_move= #{m}|best_value= #{v}"
+	    	#puts "Exiting bestmove[depth= #{d}]|best_move= #{m}|best_value= #{v}".colorize(:blue)
 	    	return [m,v]
 	    end
 
 		def turn(player, position)
-			p = position.clone
 			if player.index == 0
-				ap "Now it's my turn..."
+				puts "Now it's my turn...".colorize(:yellow)
 				
-				val = bestmove(p,player,2)
+				val = bestmove(position,player,2)
 				return val[0]
 			elsif player.index == 1
-				ap "Your options ..."
-				options_prompt = get_options(p)
+				puts "Your options ...".colorize(:yellow)
+				options_prompt = get_options(position)
 				move_choice = @ui.get_input(options_prompt.print_options) 
 				final_choice = options_prompt.choose_key(move_choice.to_i, @ui)
 				#new_pos = final_choice.execute_move(p)
@@ -94,11 +90,11 @@ module Octi
 
 		def winner(value)
 			if value == 100
-				ap "GAME OVER. You lost :("
+				puts "GAME OVER. You lost :(".colorize(:red)
 			elsif value == -100
-				ap "You won!"
+				puts "You won!".colorize(:green)
 			else
-				ap "Error"
+				puts "Error".colorize(:red)
 			end
 
 		end
