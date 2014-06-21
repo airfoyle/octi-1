@@ -1,5 +1,7 @@
 require_relative "octi/version"
 require "awesome_print"
+require 'debugger'
+require 'colorize'
 
 module Octi
 end

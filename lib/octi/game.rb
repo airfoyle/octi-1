@@ -11,21 +11,23 @@ module Octi
 			game_tree = GameTree.new(@initial_position)
 
 			@ui.print_message("Welcome to OCTI!")
-			run(@initial_position)
+			run(@initial_position, @human)
 		end
 
-		def run(position)
-			if position.game_ended?
-				ap winner(position.end_value)
+		def run(current_position, player_to_move)
+			if current_position.game_ended?
+				ap winner(current_position.end_value)
 			else
-				ap "Your options ..."
-				turn(@human, position)
-				ap "Now it's my turn..."
-				comp_pos = Position.new(position.pods.clone, @comp, @human)
+				#ap "Your options ..."		#-move to turn
+				next_move = turn(player_to_move, current_position) #return move
+				#ap "Now it's my turn..."		#-move to turn
+				debugger
+				c_p= next_move.execute_move(current_position)
+				current_position =c_p
 				#move = 
-				turn(@comp, comp_pos)
-				#new_pos = move.execute_move(position)
-				#run(position) 
+				#turn(@comp, comp_pos)
+				#new_pos = move.execute_move(position)	
+				run(current_position, other_player(player_to_move)) 
 			end
 		end
 		def other_player(player)
@@ -67,16 +69,19 @@ module Octi
 	    end
 
 		def turn(player, position)
+			p = position.clone
 			if player.index == 0
-
-				val = bestmove(position,player,2)
+				ap "Now it's my turn..."
+				
+				val = bestmove(p,player,2)
 				return val[0]
 			elsif player.index == 1
-				options_prompt = get_options(position)
+				ap "Your options ..."
+				options_prompt = get_options(p)
 				move_choice = @ui.get_input(options_prompt.print_options) 
 				final_choice = options_prompt.choose_key(move_choice.to_i, @ui)
-				new_pos = final_choice.execute_move(position)
-				return new_pos
+				#new_pos = final_choice.execute_move(p)
+				return final_choice#new_pos
 			end
 		end
 
