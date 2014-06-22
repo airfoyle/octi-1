@@ -18,12 +18,11 @@ module Octi
 			if current_position.game_ended?
 				ap winner(current_position.end_value)
 			else
-				#return move
 				next_move = turn(player_to_move, current_position)
-				puts next_move 
+				#puts "move->#{next_move} ".colorize(:green)
 				c_p = next_move.execute_move(current_position)
 				current_position = c_p
-				#new_pos = move.execute_move(position)	
+
 				run(current_position, other_player(player_to_move)) 
 			end
 		end
@@ -50,8 +49,7 @@ module Octi
 				    bestmove(move.execute_move(position),
 				             other_player(player), #player.other_player
 				             depth - 1)
-				    # puts "mv = #{move_value}"
-				    # puts "new_m = #{new_move}"
+				   
 				    if player.better_for(move_value, best_value)
 				            best_move = move#new_move
 				            best_value = move_value
@@ -68,8 +66,12 @@ module Octi
 		def turn(player, position)
 			if player.index == 0
 				puts "Now it's my turn...".colorize(:yellow)
-				
-				val = bestmove(position,player,2)
+				plyr = DeepClone.clone player
+				val = bestmove(position,plyr,2)
+				puts val
+				puts "plr prong: #{plyr.prong_reserve}"
+				puts "I have chosen...".colorize(:yellow)
+				puts "#{val[0].inspect}"
 				return val[0]
 			elsif player.index == 1
 				puts "Your options ...".colorize(:yellow)

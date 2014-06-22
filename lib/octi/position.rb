@@ -1,9 +1,9 @@
 module Octi
 	class Position
 		def initialize(pods, comp, human)
-			@pods = DeepClone.clone pods
-			@comp = comp
-			@human = human
+			@pods = DeepClone.clone pods#Marshal.load( Marshal.dump(pods) ) #DeepClone.clone pods
+			@comp =  comp.clone
+			@human = human.clone
 			@podLocs = Array.new() { Array.new() }
 			
 			@podLocs[@comp.index] = find_pods_for_player(@comp)
@@ -30,7 +30,7 @@ module Octi
 		end
 
 		def legal_moves(player)
-			return [prong_inserts(player), hops(player), jumps(player)]
+			return [prong_inserts(player), hops(player), []] #, jumps(player)
 		end
 
 		def has_prongs(pod, i, j)
@@ -77,13 +77,13 @@ module Octi
 						if has_prong && !(i == 1 && j == 1)
 							delta_x = i -1
 							delta_y = j-1
-							delta_i = delta_x + 1
-							delta_j = delta_y + 1
-							d = Location.new(l.x+delta_i, l.y+delta_j) # destination
+							#delta_i = delta_x + 1
+							#delta_j = delta_y + 1
+							d = Location.new(l.x+delta_x, l.y+delta_y) # destination
 							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
 								from = Location.new(l.x,l.y)
-								to = Location.new(l.x+i, l.y+j)
-								hops_total << Hop.new(l, d)
+								to = Location.new(d.x,d.y)
+								hops_total << Hop.new(from, to)
 							end
 						end
 					end
@@ -105,12 +105,13 @@ module Octi
 					jumps << a_jump
 				end
 			end
-			return jumps#captured(jumps.flatten)
+			return jumps.flatten#captured(jumps.flatten)
 		end
 
 		def jumpy(pod, jumped_p, s, c)
 			results = Array.new
 			avoid = []
+			#debugger
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |has_prong, j|
 
@@ -152,7 +153,7 @@ module Octi
 			for jump in jumps
 
 				for i in 0..(jump.jumped_pods.length-1) do
-					new_jump = DeepClone.clone jump # create a new jump
+					#new_jump = DeepClone.clone jump # create a new jump
 
 					#give new jump one of the combinations of jumped pods
 					new_jump.jumped_pods = new_jump.jumped_pods.combination(i).to_a 
@@ -246,15 +247,18 @@ module Octi
 			end
 
 
-			prong_count = (player.prong_reserve - player_prongs_on_board) - (opponent.prong_reserve - opponent_prongs_on_board)
-			mobility = player_mobility_arr.length + opponent_mobility_arr.length
+			prong_count = (player.prong_reserve - opponent.prong_reserve ) + 1.5*(player_prongs_on_board - opponent_prongs_on_board)
+			mobility = player_mobility_arr.length - opponent_mobility_arr.length
 			number_of_pods = player_number_of_pods - opponent_number_of_pods
-			#puts "o_dist: #{opponent_distance_to_base}|player_dist: #{player_distance_to_base}"
-			#debugger
-			total_distance_to_base = (player_distance_to_base - opponent_distance_to_base)*10
-			#prong distribution -mobility
-			val = total_distance_to_base*2 + number_of_pods*5 + prong_count/4 + mobility/4
-			#ap "val = #{val}"
+			
+			total_distance_to_base = (player_distance_to_base - opponent_distance_to_base)
+
+			if total_distance_to_base < 0
+				tal_distance_to_base = 5*(total_distance_to_base.abs) 
+			elsif total_distance_to_base > 0
+				tal_distance_to_base = -5*total_distance_to_base
+			end 
+			val = total_distance_to_base + number_of_pods*5 + prong_count/4 + mobility/2
 			return val
 		end	
 

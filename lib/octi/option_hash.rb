@@ -20,10 +20,10 @@ module Octi
 		end
 
 		def choose_key(num, ui)
-			puts "Select the #{@h[num][1]} you wish to execute"
+			puts "Select the #{@h[num][1]} you wish to execute".colorize(:yellow)
 			i = 1
 			for move in @h[num][0]
-				puts "#{i}: #{move.inspect}"
+				puts "#{i}: #{move.inspect}" #color?
 				i = i +1
 			end
 			choice = ui.get_input("").to_i
