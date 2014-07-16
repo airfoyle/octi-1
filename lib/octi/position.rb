@@ -2,8 +2,8 @@ module Octi
 	class Position
 		def initialize(pods, comp, human)
 			@pods = DeepClone.clone pods#Marshal.load( Marshal.dump(pods) ) #DeepClone.clone pods
-			@comp =  comp.clone
-			@human = human.clone
+			@comp =  comp
+			@human = human
 			@podLocs = Array.new() { Array.new() }
 			
 			@podLocs[@comp.index] = find_pods_for_player(@comp)
@@ -53,13 +53,21 @@ module Octi
 
 		def prong_inserts(player)
 			#returns coordinates of a new prong 
+			#new_player = player.clone
+			#new_player.set_prong_reserve(player.prong_reserve-1)
 			inserts = []
+			count = player.prong_reserve
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
 				pod.prongs.each_with_index do |col, i|
-					col.each_with_index do |has_prong, j|
-						if !has_prong && !(i == 1 && j == 1)
-							inserts << Insert.new(l,i,j, player)				
+					col.each_with_index do |row, j|
+						if count > 0
+							if !has_prongs(pod,i,j) && !(i == 1 && j == 1)
+								count = count - 1
+								inserts << Insert.new(l,i,j, player)				
+							end
+						else
+							return inserts	
 						end
 					end
 				end	
@@ -69,12 +77,13 @@ module Octi
 
 		def hops(player)
 			#returns origin and destination
+		#	debugger
 			hops_total = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]  # pod of playerb
 				pod.prongs.each_with_index do |col, i|
-					col.each_with_index do |has_prong, j|
-						if has_prong && !(i == 1 && j == 1)
+					col.each_with_index do |row, j|
+						if has_prongs(pod,i,j) && !(i == 1 && j == 1)
 							delta_x = i -1
 							delta_y = j-1
 							#delta_i = delta_x + 1
@@ -83,7 +92,7 @@ module Octi
 							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
 								from = Location.new(l.x,l.y)
 								to = Location.new(d.x,d.y)
-								hops_total << Hop.new(from, to)
+								hops_total << Hop.new(from, to, player)
 							end
 						end
 					end
@@ -113,9 +122,9 @@ module Octi
 			avoid = []
 			#debugger
 			pod.prongs.each_with_index do |col, i|
-				col.each_with_index do |has_prong, j|
+				col.each_with_index do |row, j|
 
-					if (has_prong && !(i == 1 && j == 1)) #on board
+					if (has_prongs(pod,i,j)&& !(i == 1 && j == 1)) #on board
 						delta_x = i -1
 						delta_y = j-1
 						delta_i = delta_x*2
@@ -131,11 +140,11 @@ module Octi
 							#to is a jump destination in sequence
 							to = Location.new(d.x,d.y) 
 
-							#player can jump oppenent's pods and his own pods
+							#player can jump opponent's pods and his own pods
 							jumped_p << pod_loc
 							avoid << pod_loc 
 
-							results << Jump.new(from, to, jumped_p)
+							results << Jump.new(from, to, jumped_p,player)
 							results << jumpy(pod, jumped_p, s, d)
 						end
 					end
@@ -194,7 +203,7 @@ module Octi
 		
 		def heuristic_value(player)
 			#change variables to rep player vs opponent
-			opponent =  other_player(player)
+			opponent =  self.other_player(player)
 
 			player_number_of_pods = 0
 			opponent_number_of_pods = 0
@@ -205,7 +214,7 @@ module Octi
 			player_prongs_on_board = 0
 			opponent_prongs_on_board = 0
 			player_mobility_arr = hops(player)
-			opponent_mobility_arr = hops(other_player(player))
+			opponent_mobility_arr = hops(opponent)
 
 			for l in @podLocs[player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
@@ -232,7 +241,7 @@ module Octi
 					pod = @pods[l.x][l.y]
 					opponent_number_of_pods = opponent_number_of_pods + 1
 					
-					dist = distance(l, player, opponent_distance_to_base)
+					dist = distance(l, opponent, opponent_distance_to_base)
 					if dist <= opponent_distance_to_base 
 						 opponent_distance_to_base = dist
 					end
@@ -246,6 +255,20 @@ module Octi
 				end
 			end
 
+		#	debugger
+		puts "heuristics: p:#{player.index}| o: #{opponent.index}".colorize(:blue)
+		puts "player.prong_reserve #{player.prong_reserve}".colorize(:blue)
+		puts "opponent.prong_reserve #{opponent.prong_reserve}".colorize(:blue)
+		puts "player_prongs_on_board  #{player_prongs_on_board }".colorize(:blue)
+		puts "opponent_prongs_on_board #{opponent_prongs_on_board}".colorize(:blue)
+		puts "player_mobility_arr.length #{player_mobility_arr.length}".colorize(:blue)
+		puts "opponent_mobility_arr.length #{opponent_mobility_arr.length}".colorize(:blue)
+		puts "player_number_of_pods #{player_number_of_pods}".colorize(:blue)
+		puts "opponent_number_of_pods #{opponent_number_of_pods}".colorize(:blue)
+		puts "player_distance_to_base #{player_distance_to_base}".colorize(:blue)
+		puts "opponent_distance_to_base #{opponent_distance_to_base}".colorize(:blue)
+		puts "player prongs: #{player.prong_reserve}"
+		puts "opponent prongs: #{opponent.prong_reserve}"
 
 			prong_count = (player.prong_reserve - opponent.prong_reserve ) + 1.5*(player_prongs_on_board - opponent_prongs_on_board)
 			mobility = player_mobility_arr.length - opponent_mobility_arr.length
@@ -259,6 +282,8 @@ module Octi
 				tal_distance_to_base = -5*total_distance_to_base
 			end 
 			val = total_distance_to_base + number_of_pods*5 + prong_count/4 + mobility/2
+		puts"SCORE: #{val}".colorize(:red)
+		puts "------------------------------------------------"
 			return val
 		end	
 
@@ -295,27 +320,36 @@ module Octi
 			return distance_to_base	
 		end
 
-		def game_ended?
-			if self.end_value != nil
-				true
+		def game_ended?(player)
+			if (val = end_value(player)) != nil
+				puts "val= #{val}".colorize(:blue)
+				return true
 			else
 				return false
 			end
 		end
 
-		def end_value
+		def end_value(player)
+			#debugger
+			#opponent = other_player(player)
 			#if pod is on enemy base
+			# puts "in end_value:".colorize(:red)
+			# puts "player: #{player.inspect}".colorize(:red)
+			# puts "comp: #{@comp.inspect}".colorize(:red)
+			# puts "human: #{@human.inspect}".colorize(:red)
+
+			#puts @podLocs.inspect
 			@podLocs[@comp.index].each do |pod| 
-				@human.bases.each do |base|
-					if pod == base
+				@comp.opponent_bases.each do |base|
+					if pod.x == base.x && pod.y == base.y
 						return 100
 					end
 				end
 			end
 
 			@podLocs[@human.index].each do |pod| 
-				@comp.bases.each do |base|
-					if pod == base
+				@human.opponent_bases.each do |base|
+					if pod.x == base.x && pod.y == base.y
 						return -100
 					end
 				end

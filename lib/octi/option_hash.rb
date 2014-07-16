@@ -1,11 +1,12 @@
 module Octi
 	class OptionHash
 		attr_reader :move
-		def initialize(moves)
+		def initialize(moves, player)
 			@all_moves = moves
 			@inserts = moves[0]
 			@hops = moves[1]
 			@jumps = moves[2]
+			@player = player
 
 			@h = Hash.new
 			@h[1] = [@inserts, "Insert"]
