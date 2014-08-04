@@ -14,7 +14,7 @@ module Octi
 	end
 
 	class Insert < Move
-		attr_reader :pod, :prongs, :inserts
+		attr_reader :pod, :prongs, :inserts, :origin, :x, :y
 		def initialize(pod,x,y,player)
 			@origin = pod #pod location
 			@x = x
@@ -46,6 +46,7 @@ module Octi
 		
 			pod = new_array[@origin.x][@origin.y]
 			new_prongs = two_array_copy(pod.prongs)
+
 			new_prongs[@x][@y] = true 
 			#freeze
 			two_array_freeze(new_prongs)
@@ -53,21 +54,6 @@ module Octi
 			new_pod.set_prongs(new_prongs)
 			new_array[@origin.x][@origin.y] = new_pod
 			two_array_freeze(new_array)
-
-
-			#new_comp = position.comp.clone 
-			#new_human = position.human.clone
-=begin
-			if @player.index == new_comp.index
-				new_comp.set_prong_reserve(count)
-			elsif
-				new_human.set_prong_reserve(count)
-			else
-				puts "ERROR".colorize(:red)
-			end
-=end			
-			#pod = new_array[@origin.x][@origin.y]
-			#pod.prongs[@x][@y] = true
 
 			new_pos = Position.new(new_array, new_comp, new_human)
 
@@ -77,7 +63,7 @@ module Octi
 	end
 
 	class Hop < Move
-		attr_reader :pod, :prongs, :board
+		attr_reader :pod, :prongs, :board, :origin, :destination, :player
 		def initialize(origin, destination,player)
 			@origin = origin
 			@destination = destination
@@ -103,26 +89,27 @@ module Octi
 			#new_array = position.pods.dup#DeepClone.clone position.pods
 			new_array = two_array_copy(position.pods)
 			pod = new_array[@origin.x][@origin.y]
+			new_prongs = two_array_copy(pod.prongs)
 		
-			#freeze
+			#freeze pod
 			new_pod = Pod.new(@player)
 			new_array[@destination.x][@destination.y] = new_pod
 			new_array[@origin.x][@origin.y] = nil
 			two_array_freeze(new_array)
 
-			#new_array = position.pods.dup#DeepClone.clone position.pods
-			#new_array[@destination.x][@destination.y] = new_array[@origin.x][@origin.y]
-			#new_array[@origin.x][@origin.y] = nil
-			#new_pos = Position.new(new_array, position.comp, position.human)
-						new_pos = Position.new(new_array, new_comp, new_human)
+			#freeze prongs
+			two_array_freeze(new_prongs)
+			new_pod.set_prongs(new_prongs)
+
+			new_pos = Position.new(new_array, new_comp, new_human)
 
 			return new_pos
 		end	
 	end
 
 	class Jump < Move
-		attr_reader :pod, :prongs, :board
-		def initialize(origin, destination, jumped_pods,player)
+		attr_reader :pod, :prongs, :board, :origin, :destination, :player
+		def initialize(origin, destination, jumped_pods, player)
 			@origin = origin
 			@destination = destination
 			@jumped_pods = jumped_pods # locations of pods jumped in board position 
@@ -149,16 +136,19 @@ module Octi
 			#new_array = position.pods.dup#DeepClone.clone position.pods
 			new_array = two_array_copy(position.pods)
 			pod = new_array[@origin.x][@origin.y]
+			new_prongs = two_array_copy(pod.prongs)
 		
-			#freeze
+			#freeze pod
 			new_pod = Pod.new(@player)
 			new_array[@destination.x][@destination.y] = new_pod
 			new_array[@origin.x][@origin.y] = nil
 			two_array_freeze(new_array)
 
+			#freeze prongs
+			two_array_freeze(new_prongs)
+			new_pod.set_prongs(new_prongs)
+
 			new_pos = Position.new(new_array, new_comp, new_human)
-
-
 			#start = @origin
 			#new_array = position.pods.dup#DeepClone.clone position.pods
 			#new_array[@destination.x][@destination.y] = new_array[@origin.x][@origin.y]

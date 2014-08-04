@@ -30,7 +30,7 @@ module Octi
 		end
 
 		def legal_moves(player)
-			return [prong_inserts(player), hops(player), []] #, jumps(player)
+			return [prong_inserts(player), hops(player), jumps(player)] #, jumps(player)
 		end
 
 		def has_prongs(pod, i, j)
@@ -109,22 +109,24 @@ module Octi
 			jumps = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				a_jump = jumpy(pod, jumped, l,l)
+				a_jump = jumpy(pod, jumped, l,l, player)
 				if !a_jump.empty?
 					jumps << a_jump
+					#puts "#{jumps}"
 				end
 			end
 			return jumps.flatten#captured(jumps.flatten)
 		end
 
-		def jumpy(pod, jumped_p, s, c)
+		def jumpy(pod, jumped_p, s, c, player)
 			results = Array.new
 			avoid = []
-			#debugger
+			
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |row, j|
 
 					if (has_prongs(pod,i,j)&& !(i == 1 && j == 1)) #on board
+						#debugger
 						delta_x = i -1
 						delta_y = j-1
 						delta_i = delta_x*2
@@ -144,8 +146,8 @@ module Octi
 							jumped_p << pod_loc
 							avoid << pod_loc 
 
-							results << Jump.new(from, to, jumped_p,player)
-							results << jumpy(pod, jumped_p, s, d)
+							results << Jump.new(from, to, jumped_p, player)
+							results << jumpy(pod, jumped_p, s, d, player)
 						end
 					end
 				end
@@ -204,7 +206,6 @@ module Octi
 		def heuristic_value(player)
 			#change variables to rep player vs opponent
 			opponent =  self.other_player(player)
-
 			player_number_of_pods = 0
 			opponent_number_of_pods = 0
 			
@@ -213,8 +214,8 @@ module Octi
 
 			player_prongs_on_board = 0
 			opponent_prongs_on_board = 0
-			player_mobility_arr = hops(player)
-			opponent_mobility_arr = hops(opponent)
+			player_mobility_arr = hops(player).length + jumps(player).length
+			opponent_mobility_arr = hops(opponent).length + jumps(opponent).length
 
 			for l in @podLocs[player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
@@ -254,7 +255,7 @@ module Octi
 					end
 				end
 			end
-
+=begin
 		#	debugger
 		puts "heuristics: p:#{player.index}| o: #{opponent.index}".colorize(:blue)
 		puts "player.prong_reserve #{player.prong_reserve}".colorize(:blue)
@@ -269,60 +270,56 @@ module Octi
 		puts "opponent_distance_to_base #{opponent_distance_to_base}".colorize(:blue)
 		puts "player prongs: #{player.prong_reserve}"
 		puts "opponent prongs: #{opponent.prong_reserve}"
-
-			prong_count = (player.prong_reserve - opponent.prong_reserve ) + 1.5*(player_prongs_on_board - opponent_prongs_on_board)
-			mobility = player_mobility_arr.length - opponent_mobility_arr.length
+=end
+			prong_count = (player.prong_reserve - opponent.prong_reserve ) + (player_prongs_on_board - opponent_prongs_on_board)
+			mobility = player_mobility_arr - opponent_mobility_arr
 			number_of_pods = player_number_of_pods - opponent_number_of_pods
 			
 			total_distance_to_base = (player_distance_to_base - opponent_distance_to_base)
 
 			if total_distance_to_base < 0
-				tal_distance_to_base = 5*(total_distance_to_base.abs) 
+				total_distance_to_base = 5*(total_distance_to_base.abs) 
 			elsif total_distance_to_base > 0
-				tal_distance_to_base = -5*total_distance_to_base
+				total_distance_to_base = -5*total_distance_to_base
 			end 
+
 			val = total_distance_to_base + number_of_pods*5 + prong_count/4 + mobility/2
-		puts"SCORE: #{val}".colorize(:red)
-		puts "------------------------------------------------"
+			#puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
+=begin
+			
+			puts "number_of_pods*5: #{number_of_pods*5}".colorize(:blue)
+			puts "prong_count/4: #{prong_count/4}".colorize(:blue)
+			puts "mobility/2: #{mobility/2}".colorize(:blue)
+			puts "result: #{val}".colorize(:red)
+			puts "player: #{player.index}".colorize(:yellow)
+=end			
+		# puts"SCORE: #{val}".colorize(:red)
+		# puts "------------------------------------------------"
 			return val
 		end	
 
+
+
+		#Params
+			#l = pod location
+			#player = current player
+			#distance_to_base = current distance_to_base
 		def distance(l, player, distance_to_base)
 	 	#Calculates distance to opponent's base
-
+	 		
 			for base in player.opponent_bases
 				dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
 				if dist < distance_to_base
 					distance_to_base = dist
 				end
 			end
-
-
-
-
-			# if player  == @comp
-			# 	1.upto(4) do |i|
-			# 		dist = Math.sqrt((l.x-5)**2+(l.y-i)**2)
-			# 		if dist < distance_to_base
-			# 			distance_to_base = dist
-			# 		end
-			# 	end
-			# elsif player  == @human
-			# 	puts "working for dist hu".colorize(:red)
-			# 	1.upto(4) do |i|
-			# 		dist = sqrt((l.x-1)**2+(l.y-i)**2)
-			# 		if dist < distance_to_base
-			# 			distance_to_base = dist #negative
-			# 		end
-			# 	end
-			# end	
-			#puts "player #{player.index}'s' distance_to_base--> #{distance_to_base}".colorize(:green)
+			
 			return distance_to_base	
 		end
 
 		def game_ended?(player)
 			if (val = end_value(player)) != nil
-				puts "val= #{val}".colorize(:blue)
+				#puts "val= #{val}".colorize(:blue)
 				return true
 			else
 				return false
@@ -339,22 +336,39 @@ module Octi
 			# puts "human: #{@human.inspect}".colorize(:red)
 
 			#puts @podLocs.inspect
-			@podLocs[@comp.index].each do |pod| 
-				@comp.opponent_bases.each do |base|
+			# @podLocs[@comp.index].each do |pod| 
+			# 	@comp.opponent_bases.each do |base|
+			# 		if pod.x == base.x && pod.y == base.y
+			# 			return 100
+			# 		end
+			# 	end
+			# end
+
+			# @podLocs[@human.index].each do |pod| 
+			# 	@human.opponent_bases.each do |base|
+			# 		if pod.x == base.x && pod.y == base.y
+			# 			puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
+			# 			return -100
+			# 		end
+			# 	end
+			# end
+			@podLocs[player.index].each do |pod| 
+				player.opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
+						puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
 						return 100
 					end
 				end
 			end
-
-			@podLocs[@human.index].each do |pod| 
-				@human.opponent_bases.each do |base|
+			@podLocs[other_player(player).index].each do |pod| 
+				other_player(player).opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
+						puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
 						return -100
 					end
 				end
 			end
-
+			
 			return nil
 			
 		end

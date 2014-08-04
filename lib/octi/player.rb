@@ -19,7 +19,7 @@ module Octi
 		end
 
 		def better_for(v1, v2)
-			puts "index: #{@index} | v1 = #{v1}| v2 = #{v2} "
+			#puts "index: #{@index} | v1 = #{v1}| v2 = #{v2} "
 			if @index == 0 && (v1 > v2)
 				return true
 			elsif @index == 1 && (v1 < v2)

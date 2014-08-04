@@ -9,6 +9,7 @@ module Octi
 			@board_obj = Board.new(6,7, @comp, @human)
 			@initial_position = Position.new(@board_obj.board, @comp, @human)
 			game_tree = GameTree.new(@initial_position)
+			@moves_made = Array.new(2) { Array.new() }
 
 			@ui.print_message("Welcome to OCTI!")
 			run(@initial_position, @human)
@@ -19,7 +20,9 @@ module Octi
 				ap winner(current_position.end_value(player_to_move))
 			else
 				next_move = turn(player_to_move, current_position)
+				@moves_made[player_to_move.index].push(next_move)
 				#puts "move->#{next_move} ".colorize(:green)
+
 				c_p = next_move.execute_move(current_position)
 				current_position = c_p
 
@@ -29,13 +32,11 @@ module Octi
 		
 		def bestmove(position, player, depth)
 			#puts "Entering bestmove[depth: #{depth}]".colorize(:blue)
-			#debugger
 			if position.game_ended?(player)	
 
 				puts "game over depth:#{depth}".colorize(:green)
 			  return [nil, position.end_value(player)]	
 			elsif depth == 0
-				#debugger
 			  return [nil, position.heuristic_value(player)]
 			else
 				best_move = nil
@@ -46,47 +47,69 @@ module Octi
 				    bestmove(move.execute_move(position),
 				             position.other_player(player), 
 				             depth - 1)
-				  # debugger
 				    if player.better_for(move_value, best_value)
 				            best_move = move
 				            best_value = move_value
 				    end
 				end
-				return print_bestmove(best_move, best_value, depth)
+				return print_bestmove(best_move, best_value, depth, player)
 	        end
 	    end	
-	    def print_bestmove(m, v, d)
-	    	#puts "Exiting bestmove[depth= #{d}]|best_move= #{m}|best_value= #{v}".colorize(:blue)
+	    def print_bestmove(m, v, d, p)
+	    	if m == nil
+	    		debugger
+	    	end
+	    	puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
 	    	return [m,v]
 	    end
 
 		def turn(player, position)
 			if player.index == 0
 				puts "Now it's my turn...".colorize(:yellow)
-				#plyr = DeepClone.clone player
 				val = bestmove(position,player,2)
-				#puts "bestmove returned-> #{val}"
 				puts "I have chosen...".colorize(:yellow)
-				puts "[#{val[0]},#{val[1].inspect}]"
+
+				print_move(val[0])
+
 				return val[0]
 			elsif player.index == 1
 				puts "Your options ...".colorize(:yellow)
 				options_prompt = get_options(position, player)
-
-				#get player's move choice
-					#add quit feature and loop
 				move_choice = @ui.get_input(options_prompt.print_options) 
+				while !(1..3).include?(move_choice.to_i)
+					puts "Please Choose a valid option.".colorize(:red)
+					move_choice = @ui.get_input(options_prompt.print_options) 
+				end
 				final_choice = options_prompt.choose_key(move_choice.to_i, @ui)
 				
 				return final_choice
 			end
 		end
 
+		def print_move(move)
+			if move.class == Insert
+					puts "Move: #{move.class}| Pod Location:(#{move.origin.x}, #{move.origin.y}) | Insert prong at: (#{move.x}, #{move.y})" #color?
+			elsif move.class == Hop
+				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
+			elsif move.class == Jump
+				
+				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})"
+			else
+				puts "ERROR: Move is nil: #{move}".colorize(:red)
+			end
+		end
+
+		def all_moves(index)
+			for move in @moves_made[index]
+				print_move(move)
+			end
+			
+		end
 		def get_options(position, player)
 			all = position.legal_moves(player)
 			
 			#return options
-			oh = OptionHash.new(all)
+			oh = OptionHash.new(all, player)
 
 			return oh
 		end
