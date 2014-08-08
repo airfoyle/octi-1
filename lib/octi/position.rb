@@ -115,7 +115,8 @@ module Octi
 					#puts "#{jumps}"
 				end
 			end
-			return jumps.flatten#captured(jumps.flatten)
+			captured(jumps.flatten)
+			return jumps.flatten
 		end
 
 		def jumpy(pod, jumped_p, s, c, player)
@@ -124,16 +125,17 @@ module Octi
 			
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |row, j|
-
-					if (has_prongs(pod,i,j)&& !(i == 1 && j == 1)) #on board
+					if has_prongs(pod,i,j) && !(i == 1 && j == 1)
 						#debugger
 						delta_x = i -1
 						delta_y = j-1
 						delta_i = delta_x*2
 						delta_j = delta_y*2
-						d = Location.new(c.x+delta_i, c.y+delta_j) #destination 
-						pod_loc = Location.new(c.x+delta_x, c.y+delta_y)
-						if on_board(d.x, d.y) && @pods[c.x+delta_x][c.y+delta_y].is_a?(Pod) && 
+						d = Location.new(c.x+delta_i, c.y+delta_j) #d = destination 
+						pod_loc = Location.new(c.x+delta_x, c.y+delta_y) #c = captured pod
+
+						#destination is on board and pod is being jumped to get to destination
+						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && 
 							@pods[d.x][d.y] == nil && !(avoid.include? (pod_loc ))
 							
 							#from is origin before jump sequence
@@ -155,30 +157,42 @@ module Octi
 			return results.flatten#results.flatten
 		end
 
+################################################
+#function is causing program to run slowly. infinite loop??
 		def captured(jumps)
-			puts jumps
+			#puts jumps
+			results = Array.new() 
 			if jumps.empty?
 				return jumps
-			end
-			#puts "jump len = #{jumps.length}"
-			for jump in jumps
+			else
 
-				for i in 0..(jump.jumped_pods.length-1) do
-					#new_jump = DeepClone.clone jump # create a new jump
-
-					#give new jump one of the combinations of jumped pods
-					new_jump.jumped_pods = new_jump.jumped_pods.combination(i).to_a 
-
-					#find index of Jump in array of total Jumps
-					idx = jumps.index(jump)
-
-					#insert new jump after original Jump with all jumped_pod
-					jumps.insert(idx, new_jump)
-					jumps << new_jump
+				for jump in jumps
+					for i in  0..(jump.jumped_pods.length-1) 
+					#new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
+						#list = jump.jumped_pods.combination(i).to_a.flatten
+						puts "combos:#{jump.jumped_pods.combination(i).to_a }"
+					end
 				end
 			end
-			#puts "returning..."
-			return jumps
+			# #puts "jump len = #{jumps.length}"
+			# for jump in jumps
+			# 	new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
+			# 	for i in 0..(jump.jumped_pods.length-1) do
+			# 		#debugger
+					
+
+			# 		#give new jump one of the combinations of jumped pods
+			# 		#new_jump.jumped_pods = new_jump.jumped_pods.combination(i).to_a 
+			# 		new_jump.set_captures(jump.jumped_pods.combination(i).to_a)
+			# 		#find index of Jump in array of total Jumps
+			# 		idx = jumps.index(jump)
+
+			# 		#insert new jump after original Jump with all jumped_pod
+			# 		jumps.insert(idx, new_jump)
+			# 		#jumps << new_jump
+			# 	end
+			# end
+			# return jumps
 		end
 
 		#return array of player's pod locations 

@@ -108,14 +108,16 @@ module Octi
 	end
 
 	class Jump < Move
-		attr_reader :pod, :prongs, :board, :origin, :destination, :player
+		attr_reader :pod, :prongs, :board, :origin, :destination, :player, :jumped_pods
 		def initialize(origin, destination, jumped_pods, player)
 			@origin = origin
 			@destination = destination
 			@jumped_pods = jumped_pods # locations of pods jumped in board position 
 			@player = player
 		end
-
+		def set_captures(pods)
+			@jumped_pods = pods
+		end
 		def execute_move(position)
 			index = @player.index
 
