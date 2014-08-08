@@ -1,7 +1,7 @@
 module Octi
 	class Position
 		def initialize(pods, comp, human)
-			@pods = DeepClone.clone pods#Marshal.load( Marshal.dump(pods) ) #DeepClone.clone pods
+			@pods = Marshal.load( Marshal.dump(pods) ) #DeepClone.clone pods
 			@comp =  comp
 			@human = human
 			@podLocs = Array.new() { Array.new() }
