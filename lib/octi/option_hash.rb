@@ -34,7 +34,7 @@ module Octi
 					puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
 
 				else
-					puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})"
+				puts "#{i}: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})|captures: #{move.jumped_pods}"
 				end
 				i = i +1
 			end

@@ -139,14 +139,26 @@ module Octi
 			new_array = two_array_copy(position.pods)
 			pod = new_array[@origin.x][@origin.y]
 			new_prongs = two_array_copy(pod.prongs)
-		
 			#freeze pod
 			new_pod = Pod.new(@player)
 			new_array[@destination.x][@destination.y] = new_pod
+
 			new_array[@origin.x][@origin.y] = nil
+<<<<<<< HEAD
 			for cap in @jumped_pods
 				new_array[cap.x][cap.y] = nil
 			end
+=======
+
+			add_to_prong_reserve = 0
+			for cap in jumped_pods
+				pod = new_array[cap.x][cap.y] 
+				add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
+				new_array[cap.x][cap.y] = nil
+			end
+			#add to player's reserve
+			@player.set_prong_reserve(@player.prong_reserve+add_to_prong_reserve)
+>>>>>>> a8a6a4e7ee3dc3780d7e614983fba7c5c3adceba
 			two_array_freeze(new_array)
 
 			#freeze prongs
