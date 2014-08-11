@@ -167,7 +167,7 @@ module Octi
 			else
 
 				for jump in jumps
-					for i in  0..(jump.jumped_pods.length-1) 
+					for i in  0..(jump.jumped_pods.length+1) 
 					#new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
 						#list = jump.jumped_pods.combination(i).to_a.flatten
 						puts "combos:#{jump.jumped_pods.combination(i).to_a }"

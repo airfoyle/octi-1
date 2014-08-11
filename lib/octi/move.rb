@@ -144,6 +144,9 @@ module Octi
 			new_pod = Pod.new(@player)
 			new_array[@destination.x][@destination.y] = new_pod
 			new_array[@origin.x][@origin.y] = nil
+			for cap in @jumped_pods
+				new_array[cap.x][cap.y] = nil
+			end
 			two_array_freeze(new_array)
 
 			#freeze prongs
