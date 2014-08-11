@@ -92,9 +92,7 @@ module Octi
 			elsif move.class == Hop
 				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
 			elsif move.class == Jump
-				
-				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})
-				|captures: #{move.jumped_pods}"
+				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})|captures: #{move.jumped_pods}"
 			else
 				puts "ERROR: Move is nil: #{move}".colorize(:red)
 			end

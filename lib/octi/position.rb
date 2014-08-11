@@ -115,7 +115,6 @@ module Octi
 					#puts "#{jumps}"
 				end
 			end
-			captured(jumps.flatten)
 			return jumps.flatten
 		end
 
@@ -137,7 +136,8 @@ module Octi
 						#destination is on board and pod is being jumped to get to destination
 						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && 
 							@pods[d.x][d.y] == nil && !(avoid.include? (pod_loc ))
-							
+							debugger
+							#puts "here".colorize(:red)
 							#from is origin before jump sequence
 							from = Location.new(s.x,s.y)
 							
@@ -148,7 +148,9 @@ module Octi
 							jumped_p << pod_loc
 							avoid << pod_loc 
 
-							results << Jump.new(from, to, jumped_p, player)
+							results << captured(Jump.new(from, to, jumped_p, player))
+							
+							#results << Jump.new(from, to, jumped_p, player)
 							results << jumpy(pod, jumped_p, s, d, player)
 						end
 					end
@@ -159,21 +161,22 @@ module Octi
 
 ################################################
 #function is causing program to run slowly. infinite loop??
-		def captured(jumps)
-			#puts jumps
+		def captured(jump)
+			if jump.jumped_pods.flatten.empty?
+				return jump
+			end 
 			results = Array.new() 
-			if jumps.empty?
-				return jumps
-			else
-
-				for jump in jumps
-					for i in  0..(jump.jumped_pods.length-1) 
-					#new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
-						#list = jump.jumped_pods.combination(i).to_a.flatten
-						puts "combos:#{jump.jumped_pods.combination(i).to_a }"
-					end
+			for i in  0..(jump.jumped_pods.length+1) 
+				list = jump.jumped_pods.combination(i).to_a
+				for item in list
+					new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
+					new_jump.set_captures(item.to_a)
+					results << new_jump
 				end
+
+				#puts "combos:#{jump.jumped_pods.combination(i).to_a }"
 			end
+			return results
 			# #puts "jump len = #{jumps.length}"
 			# for jump in jumps
 			# 	new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
