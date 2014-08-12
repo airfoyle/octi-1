@@ -1,3 +1,34 @@
+8/11
+/home/ubuntu/workspace/lib/octi/move.rb:151:in `block in execute_move': undefined method `prong_count' for nil:NilClass (NoMethodError)        from /home/ubuntu/workspace/lib/octi/move.rb:149:in `each'
+        from /home/ubuntu/workspace/lib/octi/move.rb:149:in `execute_move'        from /home/ubuntu/workspace/lib/octi/game.rb:47:in `block in bestmove'
+        from /home/ubuntu/workspace/lib/octi/game.rb:45:in `each'        from /home/ubuntu/workspace/lib/octi/game.rb:45:in `bestmove'
+        from /home/ubuntu/workspace/lib/octi/game.rb:74:in `turn'
+        from /home/ubuntu/workspace/lib/octi/game.rb:22:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'
+        from /home/ubuntu/workspace/lib/octi/game.rb:29:in `run'        from /home/ubuntu/workspace/lib/octi/game.rb:15:in `initialize'
+        from octi.rb:14:in `new'
+        from octi.rb:14:in `<main>'
+        
+        
+        
+        
+        
+
+
+
 module Octi
 	class GameTree
 
