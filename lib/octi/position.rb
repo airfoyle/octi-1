@@ -151,7 +151,8 @@ module Octi
 							results << captured(Jump.new(from, to, jumped_p, player))
 							
 							#results << Jump.new(from, to, jumped_p, player)
-							results << jumpy(pod, jumped_p, s, d, player)
+							#results << 
+							jumpy(pod, jumped_p, s, d, player)
 						end
 					end
 				end
