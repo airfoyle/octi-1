@@ -39,7 +39,7 @@ module Octi
 				i = i +1
 			end
 			choice = ui.get_input("").to_i
-			puts "i:#{i}"
+			#puts "i:#{i}"
 			while !(1..i).include?(choice)
 				puts "Please Choose a valid option.".colorize(:red)
 				choose_key(num, ui)

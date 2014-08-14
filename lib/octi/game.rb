@@ -34,7 +34,7 @@ module Octi
 			#puts "Entering bestmove[depth: #{depth}]".colorize(:blue)
 			if position.game_ended?(player)	
 
-				puts "game over depth:#{depth}".colorize(:green)
+				puts "G_O:depth:#{depth}, p:#{player.index}, #{position.end_value(player)}, #{position.heuristic_value(player)}".colorize(:green)
 			  return [nil, position.end_value(player)]	
 			elsif depth == 0
 			  return [nil, position.heuristic_value(player)]
@@ -52,14 +52,14 @@ module Octi
 				            best_value = move_value
 				    end
 				end
-				return print_bestmove(best_move, best_value, depth, player)
+				return print_bestmove(best_move, best_value, depth, player,position)
 	        end
 	    end	
-	    def print_bestmove(m, v, d, p)
-	    	if m == nil
-	    		debugger
-	    	end
-	    #	puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
+	    def print_bestmove(m, v, d, p,position)
+	 
+	   		position.game_ended?(p)
+
+	    	puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
 	    	if m.class == Insert && p.index == 1
 	    		 
 	    		puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)

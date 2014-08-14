@@ -111,12 +111,13 @@ module Octi
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
 				a_jump = jumpy(pod, jumped, l,l, player, avoid)
-				
+				#puts "J:end of recursion:#{a_jump}"
 				if !a_jump.empty?
 					jumps << a_jump
 					#puts "#{jumps}"
 				end
 			end
+
 			return jumps.flatten
 		end
 
@@ -136,10 +137,9 @@ module Octi
 						pod_loc = Location.new(c.x+delta_x, c.y+delta_y) #c = captured pod
 
 						#destination is on board and pod is being jumped to get to destination
-						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && 
-							@pods[d.x][d.y] == nil && !avoid_loc(pod_loc, avoid)
+						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && @pods[d.x][d.y] == nil && !avoid_loc(pod_loc, avoid)
 							
-							puts "J:pod:#{pod}|j_p:#{jumped_p}|s:#{s}|c:#{c}|p: #{player}|a:#{avoid}".colorize(:red)
+							#puts "J:pod:#{pod}|j_p:#{jumped_p}|s:#{s}|c:#{c}|p: #{player}|a:#{avoid}".colorize(:red)
 							if player.index ==1 && !jumped_p.empty?
 								pod.print_prongs
 							end
@@ -153,6 +153,14 @@ module Octi
 							#player can jump opponent's pods and his own pods
 							jumped_p << pod_loc
 							avoid << pod_loc 
+
+							for l in jumped_p
+								if !@pods[l.x][l.y].is_a?(Pod)
+									jumped_p.delete(l)
+									puts "GOTCHA!"
+								end
+							end
+
 
 							results << captured(Jump.new(from, to, jumped_p, player))
 							
@@ -254,6 +262,8 @@ module Octi
 			player_mobility_arr = hops(player).length + jumps(player).length
 			opponent_mobility_arr = hops(opponent).length + jumps(opponent).length
 
+			player_scoring_opp = 0
+			opponent_scoring_opp = 0
 			for l in @podLocs[player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
@@ -268,6 +278,14 @@ module Octi
 						col.each_with_index do |has_prong, j|
 							if has_prong && !(i == 1 && j == 1)
 								player_prongs_on_board = player_prongs_on_board + 1
+							end
+							if player_distance_to_base ==1 
+								for base in player.opponent_bases
+									if l.x+i == base.x && l.y+j == base.y
+										#immediate scoring oop
+										player_scoring_opp = 99
+									end
+								end
 							end
 						end
 					end
@@ -288,26 +306,34 @@ module Octi
 							if has_prong && !(i == 1 && j == 1)
 								opponent_prongs_on_board = opponent_prongs_on_board+1
 							end
+							if opponent_distance_to_base ==1 
+								for base in opponent.opponent_bases
+									if l.x+i == base.x && l.y+j == base.y
+										#immediate scoring oop
+										opponent_scoring_opp = -99
+									end
+								end
+							end
 						end
 					end
 				end
 			end
-=begin
+
 		#	debugger
 		puts "heuristics: p:#{player.index}| o: #{opponent.index}".colorize(:blue)
 		puts "player.prong_reserve #{player.prong_reserve}".colorize(:blue)
 		puts "opponent.prong_reserve #{opponent.prong_reserve}".colorize(:blue)
 		puts "player_prongs_on_board  #{player_prongs_on_board }".colorize(:blue)
 		puts "opponent_prongs_on_board #{opponent_prongs_on_board}".colorize(:blue)
-		puts "player_mobility_arr.length #{player_mobility_arr.length}".colorize(:blue)
-		puts "opponent_mobility_arr.length #{opponent_mobility_arr.length}".colorize(:blue)
+		puts "player_mobility #{player_mobility_arr}".colorize(:blue)
+		puts "opponent_mobility #{opponent_mobility_arr}".colorize(:blue)
 		puts "player_number_of_pods #{player_number_of_pods}".colorize(:blue)
 		puts "opponent_number_of_pods #{opponent_number_of_pods}".colorize(:blue)
 		puts "player_distance_to_base #{player_distance_to_base}".colorize(:blue)
 		puts "opponent_distance_to_base #{opponent_distance_to_base}".colorize(:blue)
 		puts "player prongs: #{player.prong_reserve}"
 		puts "opponent prongs: #{opponent.prong_reserve}"
-=end
+
 			prong_count = (player.prong_reserve - opponent.prong_reserve ) + (player_prongs_on_board - opponent_prongs_on_board)
 			mobility = player_mobility_arr - opponent_mobility_arr
 			number_of_pods = player_number_of_pods - opponent_number_of_pods
@@ -321,17 +347,21 @@ module Octi
 			end 
 
 			val = total_distance_to_base + number_of_pods*5 + prong_count/4 + mobility/2
-			#puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
-=begin
+			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
+
 			
 			puts "number_of_pods*5: #{number_of_pods*5}".colorize(:blue)
 			puts "prong_count/4: #{prong_count/4}".colorize(:blue)
 			puts "mobility/2: #{mobility/2}".colorize(:blue)
 			puts "result: #{val}".colorize(:red)
 			puts "player: #{player.index}".colorize(:yellow)
-=end			
-		# puts"SCORE: #{val}".colorize(:red)
-		# puts "------------------------------------------------"
+		if player_scoring_opp + opponent_scoring_opp != 0
+		 	val = player_scoring_opp + opponent_scoring_opp
+		 end	
+		 puts"SCORE: #{val}".colorize(:red)
+		 puts "------------------------------------------------"
+
+
 			return val
 		end	
 
@@ -364,31 +394,7 @@ module Octi
 		end
 
 		def end_value(player)
-			#debugger
-			#opponent = other_player(player)
-			#if pod is on enemy base
-			# puts "in end_value:".colorize(:red)
-			# puts "player: #{player.inspect}".colorize(:red)
-			# puts "comp: #{@comp.inspect}".colorize(:red)
-			# puts "human: #{@human.inspect}".colorize(:red)
-
-			#puts @podLocs.inspect
-			# @podLocs[@comp.index].each do |pod| 
-			# 	@comp.opponent_bases.each do |base|
-			# 		if pod.x == base.x && pod.y == base.y
-			# 			return 100
-			# 		end
-			# 	end
-			# end
-
-			# @podLocs[@human.index].each do |pod| 
-			# 	@human.opponent_bases.each do |base|
-			# 		if pod.x == base.x && pod.y == base.y
-			# 			puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
-			# 			return -100
-			# 		end
-			# 	end
-			# end
+	
 			@podLocs[player.index].each do |pod| 
 				player.opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
@@ -400,6 +406,7 @@ module Octi
 			@podLocs[other_player(player).index].each do |pod| 
 				other_player(player).opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
+						puts "other_player(player).index = #{other_player(player).index}"
 						puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
 						return -100
 					end
