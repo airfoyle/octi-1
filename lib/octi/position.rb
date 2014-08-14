@@ -107,9 +107,11 @@ module Octi
 
 			jumped = []
 			jumps = []
+			avoid = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				a_jump = jumpy(pod, jumped, l,l, player)
+				a_jump = jumpy(pod, jumped, l,l, player, avoid)
+				
 				if !a_jump.empty?
 					jumps << a_jump
 					#puts "#{jumps}"
@@ -118,9 +120,9 @@ module Octi
 			return jumps.flatten
 		end
 
-		def jumpy(pod, jumped_p, s, c, player)
+		def jumpy(pod, jumped_p, s, c, player, avoid)
 			results = Array.new
-			avoid = []
+			
 			
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |row, j|
@@ -135,8 +137,12 @@ module Octi
 
 						#destination is on board and pod is being jumped to get to destination
 						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && 
-							@pods[d.x][d.y] == nil && !(avoid.include? (pod_loc ))
-							debugger
+							@pods[d.x][d.y] == nil && !avoid_loc(pod_loc, avoid)
+							
+							puts "J:pod:#{pod}|j_p:#{jumped_p}|s:#{s}|c:#{c}|p: #{player}|a:#{avoid}".colorize(:red)
+							if player.index ==1 && !jumped_p.empty?
+								pod.print_prongs
+							end
 							#puts "here".colorize(:red)
 							#from is origin before jump sequence
 							from = Location.new(s.x,s.y)
@@ -151,15 +157,28 @@ module Octi
 							results << captured(Jump.new(from, to, jumped_p, player))
 							
 							#results << Jump.new(from, to, jumped_p, player)
+
 							#results << 
-							jumpy(pod, jumped_p, s, d, player)
+							#jumpy(pod, jumped_p, s, d, player)
+
+							#results << 
+							jumpy(pod, jumped_p, s, d, player, avoid)
 						end
 					end
 				end
 			end
 			return results.flatten#results.flatten
 		end
-
+		
+		#check if pod should be avoided
+		def avoid_loc(pod_loc, avoid)
+			for l in avoid 
+				if (l.x == pod_loc.x) && (l.y ==pod_loc.y)
+					return true
+				end
+			end
+			return false 
+		end
 ################################################
 #function is causing program to run slowly. infinite loop??
 		def captured(jump)

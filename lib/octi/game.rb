@@ -59,7 +59,12 @@ module Octi
 	    	if m == nil
 	    		debugger
 	    	end
-	    	puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
+	    #	puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
+	    	if m.class == Insert && p.index == 1
+	    		 
+	    		puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
+	    	end
+	    	
 	    	return [m,v]
 	    end
 

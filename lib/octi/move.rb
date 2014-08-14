@@ -146,10 +146,13 @@ module Octi
 			new_array[@origin.x][@origin.y] = nil
 
 			add_to_prong_reserve = 0
-			for cap in jumped_pods
-				pod = new_array[cap.x][cap.y] 
-				add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
-				new_array[cap.x][cap.y] = nil
+			if !jumped_pods.empty?
+				puts "jumped_pods: #{jumped_pods}"
+				for cap in jumped_pods
+					pod = new_array[cap.x][cap.y] 
+					add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
+					new_array[cap.x][cap.y] = nil
+				end
 			end
 			#add to player's reserve
 			@player.set_prong_reserve(@player.prong_reserve+add_to_prong_reserve)

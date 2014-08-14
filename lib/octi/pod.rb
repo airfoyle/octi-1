@@ -25,6 +25,16 @@ module Octi
 			end
 			return count
 		end
+		
+		def print_prongs
+			@prongs.each_with_index do |col, i|
+				col.each_with_index do |row, j|
+					if @prongs[i][j] == true && !(i == 1 && j == 1)
+						puts "(#{i}, #{j})"
+					end
+				end
+			end
+		end
 	end
 end
 
