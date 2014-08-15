@@ -35,20 +35,21 @@ module Octi
 			if position.game_ended?(player)	
 
 				puts "G_O:depth:#{depth}, p:#{player.index}, #{position.end_value(player)}, #{position.heuristic_value(player)}".colorize(:green)
-			  return [nil, position.end_value(player)]	
+			  return nil, position.end_value(player)	
 			elsif depth == 0
-			  return [nil, position.heuristic_value(player)]
+			puts "end of tree 0"
+			  return nil, position.heuristic_value(player)
 			else
 				best_move = nil
 				best_value = player.worst_value		
 				moves = position.legal_moves(player).flatten
 				for move in moves
-				    new_move, move_value =
-				    bestmove(move.execute_move(position),
+				    new_move, move_value = bestmove(move.execute_move(position),
 				             position.other_player(player), 
 				             depth - 1)
 				    if player.better_for(move_value, best_value)
-				            best_move = move
+				    	puts "BM: #{new_move}"
+				            best_move = new_move
 				            best_value = move_value
 				    end
 				end
@@ -59,13 +60,14 @@ module Octi
 	 
 	   		position.game_ended?(p)
 
-	    	puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
+	    	#puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
+	    	puts "exiting bestmove: m #{m}, v #{v}"
 	    	if m.class == Insert && p.index == 1
 	    		 
 	    		puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
 	    	end
 	    	
-	    	return [m,v]
+	    	return m,v
 	    end
 
 		def turn(player, position)
