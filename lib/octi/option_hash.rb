@@ -9,9 +9,15 @@ module Octi
 			@player = player
 
 			@h = Hash.new
-			@h[1] = [@inserts, "Insert"]
-			@h[2] = [@hops, "Hop"]
-			@h[3] = [@jumps, "Jump"]
+			if @inserts.length > 1
+				@h[1] = [@inserts, "Insert"]
+			end
+			if @hops.length > 0
+				@h[2] = [@hops, "Hop"]
+			end
+			if @jumps.length > 0
+				@h[3] = [@jumps, "Jump"]
+			end 
 		end
 
 		def print_options

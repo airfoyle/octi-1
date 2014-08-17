@@ -8,7 +8,7 @@ module Octi
 			@human = Player.new(1, 32)
 			@board_obj = Board.new(6,7, @comp, @human)
 			@initial_position = Position.new(@board_obj.board, @comp, @human)
-			game_tree = GameTree.new(@initial_position)
+		#	game_tree = GameTree.new(@initial_position)
 			@moves_made = Array.new(2) { Array.new() }
 
 			@ui.print_message("Welcome to OCTI!")
@@ -22,10 +22,10 @@ module Octi
 				next_move = turn(player_to_move, current_position)
 				@moves_made[player_to_move.index].push(next_move)
 				#puts "move->#{next_move} ".colorize(:green)
-
-				c_p = next_move.execute_move(current_position)
-				current_position = c_p
-
+				if next_move != nil
+					c_p = next_move.execute_move(current_position)
+					current_position = c_p
+				end 
 				run(current_position, current_position.other_player(player_to_move)) 
 			end
 		end
@@ -37,7 +37,7 @@ module Octi
 				puts "G_O:depth:#{depth}, p:#{player.index}, #{position.end_value(player)}, #{position.heuristic_value(player)}".colorize(:green)
 			  return nil, position.end_value(player)	
 			elsif depth == 0
-			puts "end of tree 0"
+		#	puts "end of tree 0"
 			  return nil, position.heuristic_value(player)
 			else
 				best_move = nil
@@ -48,8 +48,8 @@ module Octi
 				             position.other_player(player), 
 				             depth - 1)
 				    if player.better_for(move_value, best_value)
-				    	puts "BM: #{new_move}"
-				            best_move = new_move
+				    #	puts "BM: #{new_move}"
+				            best_move = move
 				            best_value = move_value
 				    end
 				end
@@ -61,7 +61,7 @@ module Octi
 	   		position.game_ended?(p)
 
 	    	#puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
-	    	puts "exiting bestmove: m #{m}, v #{v}"
+	    	puts "exiting bestmove: m #{m}, v #{v}, p #{p.index}"
 	    	if m.class == Insert && p.index == 1
 	    		 
 	    		puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
@@ -82,7 +82,11 @@ module Octi
 			elsif player.index == 1
 				puts "Your options ...".colorize(:yellow)
 				options_prompt = get_options(position, player)
-				move_choice = @ui.get_input(options_prompt.print_options) 
+				if options_prompt != nil
+					move_choice = @ui.get_input(options_prompt.print_options)
+				else
+					return nil
+				end
 				while !(1..3).include?(move_choice.to_i)
 					puts "Please Choose a valid option.".colorize(:red)
 					move_choice = @ui.get_input(options_prompt.print_options) 
@@ -113,11 +117,11 @@ module Octi
 		end
 		def get_options(position, player)
 			all = position.legal_moves(player)
-			
-			#return options
-			oh = OptionHash.new(all, player)
-
-			return oh
+			if all.flatten != nil
+				oh = OptionHash.new(all, player)
+				return oh
+			end 
+			return nil
 		end
 
 		def winner(value)
