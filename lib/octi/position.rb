@@ -334,7 +334,7 @@ module Octi
 				total_distance_to_base = -5*total_distance_to_base
 			end 
 
-			val = total_distance_to_base + number_of_pods*6 + prong_count*(0.25) + mobility*(0.5)
+			val = total_distance_to_base + number_of_pods*6 + prong_count*(0.25) + mobility*(0.25)
 			
 			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
 

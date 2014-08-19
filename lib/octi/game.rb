@@ -47,7 +47,7 @@ module Octi
 				    new_move, move_value = bestmove(move.execute_move(position),
 				             position.other_player(player), 
 				             depth - 1)
-				    if player.better_for(move_value, best_value)
+				    if best_move == nil || player.better_for(move_value, best_value)
 				    #	puts "BM: #{new_move}"
 				            best_move = move
 				            best_value = move_value
