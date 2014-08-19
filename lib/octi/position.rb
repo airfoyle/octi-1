@@ -157,7 +157,7 @@ module Octi
 							for l in jumped_p
 								if !@pods[l.x][l.y].is_a?(Pod)
 									jumped_p.delete(l)
-									puts "GOTCHA!"
+									#puts "GOTCHA!"
 								end
 							end
 
@@ -246,6 +246,9 @@ module Octi
 
 			player_scoring_opp = 0
 			opponent_scoring_opp = 0
+
+			player_bonus = 0
+
 			for l in @podLocs[player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
@@ -257,15 +260,15 @@ module Octi
 					end
 
 					pod.prongs.each_with_index do |col, i|
-						col.each_with_index do |has_prong, j|
-							if has_prong && !(i == 1 && j == 1)
+						col.each_with_index do |row, j|
+							if has_prongs(pod, i, j) && !(i == 1 && j == 1)
 								player_prongs_on_board = player_prongs_on_board + 1
 							end
 							if player_distance_to_base ==1 
 								for base in player.opponent_bases
 									if (l.x+i == base.x && l.y+j == base.y) && @pods[base.x][base.y] == nil
 										#immediate scoring oop
-										player_scoring_opp = 99
+										#player_scoring_opp = 99
 									end
 								end
 							end
@@ -284,15 +287,15 @@ module Octi
 						 opponent_distance_to_base = dist
 					end
 					pod.prongs.each_with_index do |col, i|
-						col.each_with_index do |has_prong, j|
-							if has_prong && !(i == 1 && j == 1)
+						col.each_with_index do |row, j|
+							if has_prongs(pod, i, j) && !(i == 1 && j == 1)
 								opponent_prongs_on_board = opponent_prongs_on_board+1
 							end
 							if opponent_distance_to_base ==1 
 								for base in opponent.opponent_bases
 									if l.x+i == base.x && l.y+j == base.y && @pods[base.x][base.y] == nil
 										#immediate scoring oop
-										opponent_scoring_opp = -99 
+										#opponent_scoring_opp = -99 
 									end
 								end
 							end
@@ -321,20 +324,24 @@ module Octi
 			number_of_pods = player_number_of_pods - opponent_number_of_pods
 			
 			# home_dist = 4
-			# player_diff_dist = home_dist - player_distance_to_base
-			# opponent_diff_dist = home_dist - opponent_distance_to_base
+			puts "pd2b #{player_distance_to_base}".colorize(:yellow)
+			puts "od2b #{opponent_distance_to_base}".colorize(:yellow)
+
+			 player_diff_dist = (7 - player_distance_to_base)*(12.5)
+			 opponent_diff_dist = (7 - opponent_distance_to_base)*(12.5)
 			
 			#total_distance_to_base = (player_diff_dist - opponent_diff_dist)
 			
 			total_distance_to_base = player_distance_to_base - opponent_distance_to_base
 		
-			if total_distance_to_base < 0
-				total_distance_to_base = 5*(total_distance_to_base.abs) 
-			elsif total_distance_to_base > 0
-				total_distance_to_base = -5*total_distance_to_base
-			end 
-
-			val = total_distance_to_base + number_of_pods*6 + prong_count*(0.25) + mobility*(0.25)
+			# if total_distance_to_base < 0
+			# 	total_distance_to_base = 5*(total_distance_to_base.abs) 
+			# elsif total_distance_to_base > 0
+			# 	total_distance_to_base = -5*total_distance_to_base
+			# end 
+			bonus_diff = bonus(player, 0) - bonus(opponent, 0)
+			deduc_diff = deductions(player, 0) - deductions(opponent, 0)
+			val = total_distance_to_base + number_of_pods*(2.5) + prong_count*(0.25) + mobility*(0.25)+ bonus_diff + deduc_diff
 			
 			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
 
@@ -354,6 +361,61 @@ module Octi
 			return val
 		end	
 
+		def deductions(curr_player, sub_score)
+			for l in @podLocs[curr_player.index]
+				if @pods[l.x][l.y].is_a?(Pod)
+					base_y = other_player(curr_player).opponent_bases.first.y-1
+					for pod in @podLocs[other_player(curr_player).index]
+						if pod.y == base_y
+							sub_score = sub_score - 1.25
+						end
+					end
+				end
+			end
+			return sub_score
+		end
+
+		def bonus(curr_player, bonus_score)
+			for l in @podLocs[curr_player.index]
+				if @pods[l.x][l.y].is_a?(Pod)
+					pod = @pods[l.x][l.y]
+					
+					pod.prongs.each_with_index do |col, i|
+						col.each_with_index do |row, j|
+							if has_prongs(pod, 0, 0) && has_prongs(pod, 2,2)
+								bonus_score = bonus_score + 1
+							end
+							if has_prongs(pod, 1, 0) && has_prongs(pod, 1,2)
+								bonus_score = bonus_score + 1
+							end
+							if has_prongs(pod, 2, 0) && has_prongs(pod, 0,2)
+								bonus_score = bonus_score + 1
+							end
+							if has_prongs(pod, 0, 1) && has_prongs(pod, 2,1)
+								bonus_score = bonus_score + 1
+							end
+							base_y = curr_player.opponent_bases.first.y
+							if base_y == 1 
+								if l.y <= 3
+									bonus_score = bonus_score + 1
+								end
+							 	if (i == 1 && j==0)
+									bonus_score = bonus_score + 0.5
+								end
+							elsif base_y == 5 
+								if l.y >= 3
+									bonus_score = bonus_score + 1
+								end
+								if (i == 1 && j== 2)
+									bonus_score = bonus_score + 0.5
+								end
+							end
+						end
+					end
+				end
+			end
+			return bonus_score 
+		end
 		#Params
 			#l = pod location
 			#player = current player
@@ -362,9 +424,9 @@ module Octi
 	 	#Calculates distance to opponent's base
 	 		
 			for base in player.opponent_bases
-			if @pods[l.x][l.y].is_a?(Pod) 
-				pod = @pods[l.x][l.y]
-			end
+				if @pods[l.x][l.y].is_a?(Pod) 
+					pod = @pods[l.x][l.y]
+				end
 				pod.prongs.each_with_index do |col, i|
 					col.each_with_index do |row, j|
 						if has_prongs(pod, i, j) && !(i == 1 && j == 1)
@@ -372,21 +434,20 @@ module Octi
 							delta_y = j-1
 							d = Location.new(l.x+delta_x, l.y+delta_y) # destination
 							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
-								l = Location.new(d.x,d.y)
+								#l = Location.new(d.x,d.y)
+								dist = Math.sqrt( (base.x - d.x)**2 + (base.y - d.y)**2 )
+								if dist < distance_to_base
+									distance_to_base = dist
+								end
+							else
 								dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
 								if dist < distance_to_base
 									distance_to_base = dist
-									return distance_to_base
 								end
 							end
 						end 
 					end 
 				end 
-			end
-			dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
-			if dist < distance_to_base
-				distance_to_base = dist
-				return distance_to_base
 			end
 			return distance_to_base	
 		end
@@ -422,7 +483,6 @@ module Octi
 			@podLocs[player.index].each do |pod| 
 				player.opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
-						puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
 						return 100
 					end
 				end
@@ -430,8 +490,6 @@ module Octi
 			@podLocs[other_player(player).index].each do |pod| 
 				other_player(player).opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
-						puts "other_player(player).index = #{other_player(player).index}"
-						puts "#{pod.x}, #{base.x} | #{pod.y}, #{base.y}"
 						return -100
 					end
 				end
