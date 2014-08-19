@@ -303,7 +303,6 @@ module Octi
 					end
 				end
 			end
-=begin
 		#	debugger
 		puts "heuristics: p:#{player.index}| o: #{opponent.index}".colorize(:blue)
 		puts "player.prong_reserve #{player.prong_reserve}".colorize(:blue)
@@ -318,21 +317,18 @@ module Octi
 		puts "opponent_distance_to_base #{opponent_distance_to_base}".colorize(:blue)
 		puts "player prongs: #{player.prong_reserve}"
 		puts "opponent prongs: #{opponent.prong_reserve}"
-=end
+
 			prong_count = (player.prong_reserve - opponent.prong_reserve ) + (player_prongs_on_board - opponent_prongs_on_board)
 			mobility = player_mobility_arr - opponent_mobility_arr
 			number_of_pods = player_number_of_pods - opponent_number_of_pods
 			
-			# home_dist = 4
-			puts "pd2b #{player_distance_to_base}".colorize(:yellow)
-			puts "od2b #{opponent_distance_to_base}".colorize(:yellow)
-
+		
 			 player_diff_dist = (7 - player_distance_to_base)*(12.5)
 			 opponent_diff_dist = (7 - opponent_distance_to_base)*(12.5)
 			
-			#total_distance_to_base = (player_diff_dist - opponent_diff_dist)
+			total_distance_to_base = (player_diff_dist - opponent_diff_dist)
 			
-			total_distance_to_base = player_distance_to_base - opponent_distance_to_base
+			#total_distance_to_base = player_distance_to_base - opponent_distance_to_base
 		
 			# if total_distance_to_base < 0
 			# 	total_distance_to_base = 5*(total_distance_to_base.abs) 
@@ -343,12 +339,14 @@ module Octi
 			deduc_diff = deductions(player, 0) - deductions(opponent, 0)
 			val = total_distance_to_base + number_of_pods*(2.5) + prong_count*(0.25) + mobility*(0.25)+ bonus_diff + deduc_diff
 			
+			puts "pdd #{player_diff_dist}".colorize(:red)
+			puts "odd #{opponent_diff_dist}".colorize(:red)
 			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
 
 			
-			puts "number_of_pods*5: #{number_of_pods*5}".colorize(:blue)
-			puts "prong_count/4: #{prong_count/4}".colorize(:blue)
-			puts "mobility/2: #{mobility/2}".colorize(:blue)
+			puts "number_of_pods*5: #{number_of_pods*2.5}".colorize(:blue)
+			puts "prong_count/4: #{prong_count*0.25}".colorize(:blue)
+			puts "mobility/2: #{mobility*0.25}".colorize(:blue)
 			puts "result: #{val}".colorize(:red)
 			puts "player: #{player.index}".colorize(:yellow)
 			# if player_scoring_opp + opponent_scoring_opp != 0
@@ -371,6 +369,9 @@ module Octi
 						end
 					end
 				end
+			end
+			if @podLocs[curr_player.index].length < 4
+				sub_score = sub_score - 10
 			end
 			return sub_score
 		end
@@ -396,14 +397,21 @@ module Octi
 							end
 							base_y = curr_player.opponent_bases.first.y
 							if base_y == 1 
-								if l.y <= 3
+								if l.y == 3
 									bonus_score = bonus_score + 1
 								end
+								if l.y < 3
+									bonus_score = bonus_score + 1
+								end
+							
 							 	if (i == 1 && j==0)
 									bonus_score = bonus_score + 0.5
 								end
 							elsif base_y == 5 
-								if l.y >= 3
+								if l.y == 3
+									bonus_score = bonus_score + 1
+								end
+								if l.y > 3
 									bonus_score = bonus_score + 1
 								end
 								if (i == 1 && j== 2)
@@ -424,31 +432,37 @@ module Octi
 	 	#Calculates distance to opponent's base
 	 		
 			for base in player.opponent_bases
-				if @pods[l.x][l.y].is_a?(Pod) 
-					pod = @pods[l.x][l.y]
-				end
-				pod.prongs.each_with_index do |col, i|
-					col.each_with_index do |row, j|
-						if has_prongs(pod, i, j) && !(i == 1 && j == 1)
-							delta_x = i -1
-							delta_y = j-1
-							d = Location.new(l.x+delta_x, l.y+delta_y) # destination
-							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
-								#l = Location.new(d.x,d.y)
-								dist = Math.sqrt( (base.x - d.x)**2 + (base.y - d.y)**2 )
+				# if @pods[l.x][l.y].is_a?(Pod) 
+				# 	pod = @pods[l.x][l.y]
+				# end
+				# pod.prongs.each_with_index do |col, i|
+				# 	col.each_with_index do |row, j|
+				# 		if has_prongs(pod, i, j) && !(i == 1 && j == 1)
+				# 			delta_x = i -1
+				# 			delta_y = j-1
+				# 			d = Location.new(l.x+delta_x, l.y+delta_y) # destination
+				# 			if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
+				# 				#l = Location.new(d.x,d.y)
+				# 				dist = Math.sqrt( (base.x - d.x)**2 + (base.y - d.y)**2 )
+				# 				if dist < distance_to_base
+				# 					distance_to_base = dist
+				# 				end
+				# 			else
+				# 				dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
+				# 				if dist < distance_to_base
+				# 					distance_to_base = dist
+				# 				end
+				# 			end
+				# 		end 
+				# 	end 
+				# end 
+
+			dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
 								if dist < distance_to_base
 									distance_to_base = dist
 								end
-							else
-								dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
-								if dist < distance_to_base
-									distance_to_base = dist
-								end
-							end
-						end 
-					end 
-				end 
 			end
+
 			return distance_to_base	
 		end
 		#return new location if true or initial location if false
