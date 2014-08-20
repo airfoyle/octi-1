@@ -61,7 +61,7 @@ module Octi
 	   		position.game_ended?(p)
 
 	    	#puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
-	    	puts "exiting bestmove: m #{m}, v #{v}, p #{p.index}"
+	    	puts "exiting bestmove: #{print_move(m)} p#{p.index} v#{v}"
 	    	if m.class == Insert && p.index == 1
 	    		 
 	    		puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)

@@ -148,13 +148,13 @@ module Octi
 			add_to_prong_reserve = 0
 
 			if !jumped_pods.empty?
-				puts "jumped_pods: #{jumped_pods}"
+				#puts "jumped_pods: #{jumped_pods}"
 				for cap in jumped_pods
 					pod = new_array[cap.x][cap.y] 
 					if !pod.is_a?(Pod)
 						debugger
 					end
-					puts "exec jump/cap pod =#{pod}"
+					#puts "exec jump/cap pod =#{pod}"
 					add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
 					new_array[cap.x][cap.y] = nil
 				end

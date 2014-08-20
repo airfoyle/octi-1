@@ -140,9 +140,7 @@ module Octi
 						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && @pods[d.x][d.y] == nil && !avoid_loc(pod_loc, avoid)
 							
 							#puts "J:pod:#{pod}|j_p:#{jumped_p}|s:#{s}|c:#{c}|p: #{player}|a:#{avoid}".colorize(:red)
-							if player.index ==1 && !jumped_p.empty?
-								pod.print_prongs
-							end
+						
 							#puts "here".colorize(:red)
 							#from is origin before jump sequence
 							from = Location.new(s.x,s.y)
@@ -242,7 +240,7 @@ module Octi
 			player_prongs_on_board = 0
 			opponent_prongs_on_board = 0
 			player_mobility_arr = hops(player).length + jumps(player).length
-			opponent_mobility_arr = hops(opponent).length + jumps(opponent).length
+			opponent_mobility_arr = hops(opponent).length #+ jumps(opponent).length
 
 			player_scoring_opp = 0
 			opponent_scoring_opp = 0
@@ -304,6 +302,7 @@ module Octi
 				end
 			end
 		#	debugger
+=begin
 		puts "heuristics: p:#{player.index}| o: #{opponent.index}".colorize(:blue)
 		puts "player.prong_reserve #{player.prong_reserve}".colorize(:blue)
 		puts "opponent.prong_reserve #{opponent.prong_reserve}".colorize(:blue)
@@ -317,16 +316,17 @@ module Octi
 		puts "opponent_distance_to_base #{opponent_distance_to_base}".colorize(:blue)
 		puts "player prongs: #{player.prong_reserve}"
 		puts "opponent prongs: #{opponent.prong_reserve}"
-
-			prong_count = (player.prong_reserve - opponent.prong_reserve ) + (player_prongs_on_board - opponent_prongs_on_board)
-			mobility = player_mobility_arr - opponent_mobility_arr
-			number_of_pods = player_number_of_pods - opponent_number_of_pods
+=end
+			#prong_count = (player.prong_reserve - opponent.prong_reserve ) + (player_prongs_on_board - opponent_prongs_on_board)
+			prong_count = player.prong_reserve + player_prongs_on_board
+			mobility = player_mobility_arr #- opponent_mobility_arr
+			number_of_pods = player_number_of_pods #- opponent_number_of_pods
 			
 		
-			 player_diff_dist = (7 - player_distance_to_base)*(12.5)
-			 opponent_diff_dist = (7 - opponent_distance_to_base)*(12.5)
+			 player_diff_dist = (4 - player_distance_to_base)*(12.5)
+			 opponent_diff_dist = (4 - opponent_distance_to_base)*(12.5)
 			
-			total_distance_to_base = (player_diff_dist - opponent_diff_dist)
+			total_distance_to_base = player_diff_dist #- opponent_diff_dist
 			
 			#total_distance_to_base = player_distance_to_base - opponent_distance_to_base
 		
@@ -335,31 +335,33 @@ module Octi
 			# elsif total_distance_to_base > 0
 			# 	total_distance_to_base = -5*total_distance_to_base
 			# end 
-			bonus_diff = bonus(player, 0) - bonus(opponent, 0)
-			deduc_diff = deductions(player, 0) - deductions(opponent, 0)
-			val = total_distance_to_base + number_of_pods*(2.5) + prong_count*(0.25) + mobility*(0.25)+ bonus_diff + deduc_diff
-			
+		
+			bonus_diff = bonus(player, 0) #- bonus(opponent, 0)
+			deduc_diff = deductions(player, 0) #- deductions(opponent, 0)
+			val = total_distance_to_base + number_of_pods*(2.5) + prong_count*(0.0625) + mobility*(0.25)+ bonus_diff + deduc_diff
+
 			puts "pdd #{player_diff_dist}".colorize(:red)
 			puts "odd #{opponent_diff_dist}".colorize(:red)
 			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
 
 			
-			puts "number_of_pods*5: #{number_of_pods*2.5}".colorize(:blue)
-			puts "prong_count/4: #{prong_count*0.25}".colorize(:blue)
-			puts "mobility/2: #{mobility*0.25}".colorize(:blue)
+			puts "number_of_pods: #{number_of_pods*2.5}".colorize(:blue)
+			puts "prong_count: #{prong_count*0.25}".colorize(:blue)
+			puts "mobility: #{mobility*0.25}".colorize(:blue)
+			puts "bonus: #{bonus_diff}".colorize(:blue)
+			puts "deductions: #{deduc_diff}".colorize(:blue)
 			puts "result: #{val}".colorize(:red)
 			puts "player: #{player.index}".colorize(:yellow)
 			# if player_scoring_opp + opponent_scoring_opp != 0
 			#  	val = player_scoring_opp + opponent_scoring_opp
 			# end	
-		 puts"SCORE: #{val}".colorize(:red)
 		 puts "------------------------------------------------"
-
 
 			return val
 		end	
 
 		def deductions(curr_player, sub_score)
+			count = 0
 			for l in @podLocs[curr_player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					base_y = other_player(curr_player).opponent_bases.first.y-1
@@ -369,25 +371,37 @@ module Octi
 						end
 					end
 				end
+				count = count +1
 			end
-			if @podLocs[curr_player.index].length < 4
-				sub_score = sub_score - 10
-			end
+				sub_score = sub_score - 10*(4-count)
 			return sub_score
 		end
 
 		def bonus(curr_player, bonus_score)
+			debugger
 			for l in @podLocs[curr_player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
 					
 					pod.prongs.each_with_index do |col, i|
 						col.each_with_index do |row, j|
+							if has_prongs(pod, i, j) && !(i == 1 && j == 1)
+								delta_x = i -1
+								delta_y = j-1
+								d = Location.new(l.x+delta_x, l.y+delta_y) # destination
+								#&& d.x and d.y are bases
+								other_player(curr_player).opponent_bases.each do |o_base|
+									if on_board(l.x,l.y) && (l.x == o_base.x && l.y == o_base.y)
+										bonus_score = bonus_score +12.5
+									end
+								end
+							end
+
 							if has_prongs(pod, 0, 0) && has_prongs(pod, 2,2)
 								bonus_score = bonus_score + 1
 							end
 							if has_prongs(pod, 1, 0) && has_prongs(pod, 1,2)
-								bonus_score = bonus_score + 1
+								bonus_score = bonus_score + 1.5
 							end
 							if has_prongs(pod, 2, 0) && has_prongs(pod, 0,2)
 								bonus_score = bonus_score + 1
@@ -456,16 +470,17 @@ module Octi
 				# 		end 
 				# 	end 
 				# end 
-
-			dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
-								if dist < distance_to_base
-									distance_to_base = dist
-								end
+			#dist = Math.sqrt( (base.x - l.x)**2 + (base.y - l.y)**2 )
+			dist = Math.sqrt( (base.y - l.y)**2 )	
+				if dist < distance_to_base
+					distance_to_base = dist
+				end
 			end
 
 			return distance_to_base	
 		end
 		#return new location if true or initial location if false
+=begin		
 		def can_hop?(pod)
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |row, j|
@@ -482,7 +497,7 @@ module Octi
 			end
 			return pod
 		end
-		
+=end
 		def game_ended?(player)
 			if (val = end_value(player)) != nil
 				#puts "val= #{val}".colorize(:blue)
