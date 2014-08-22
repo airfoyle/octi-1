@@ -9,9 +9,15 @@ module Octi
 			@player = player
 
 			@h = Hash.new
-			@h[1] = [@inserts, "Insert"]
-			@h[2] = [@hops, "Hop"]
-			@h[3] = [@jumps, "Jump"]
+			if @inserts.length > 1
+				@h[1] = [@inserts, "Insert"]
+			end
+			if @hops.length > 0
+				@h[2] = [@hops, "Hop"]
+			end
+			if @jumps.length > 0
+				@h[3] = [@jumps, "Jump"]
+			end 
 		end
 
 		def print_options
@@ -34,12 +40,12 @@ module Octi
 					puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
 
 				else
-					puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})"
+				puts "#{i}: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})|captures: #{move.jumped_pods}"
 				end
 				i = i +1
 			end
 			choice = ui.get_input("").to_i
-			puts "i:#{i}"
+			#puts "i:#{i}"
 			while !(1..i).include?(choice)
 				puts "Please Choose a valid option.".colorize(:red)
 				choose_key(num, ui)

@@ -23,7 +23,9 @@ module Octi
 			@comp.set_opponent_bases(human_bases)
 
 			@human.set_bases(human_bases) 
-			@comp.set_bases(comp_bases)			
+			@comp.set_bases(comp_bases)	
+			
+			
 		end
 
 		# def positions(player)

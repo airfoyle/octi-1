@@ -15,6 +15,26 @@ module Octi
 
 			@prongs = n
 		end
+
+		def prong_count
+			count = 0 
+			for prong in @prongs
+				if prong 
+					count+1
+				end
+			end
+			return count
+		end
+		
+		def print_prongs
+			@prongs.each_with_index do |col, i|
+				col.each_with_index do |row, j|
+					if @prongs[i][j] == true && !(i == 1 && j == 1)
+						puts "(#{i}, #{j})"
+					end
+				end
+			end
+		end
 	end
 end
 
