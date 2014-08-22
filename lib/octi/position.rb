@@ -342,22 +342,22 @@ module Octi
 			deduc_diff = deductions(player, 0) #- deductions(opponent, 0)
 			val = total_distance_to_base + number_of_pods*(2.5) + prong_count*(0.0625) + mobility*(0.125)+ bonus_diff + deduc_diff
 
-			puts "pdd #{player_diff_dist}".colorize(:red)
-			puts "odd #{opponent_diff_dist}".colorize(:red)
-			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
+			# puts "pdd #{player_diff_dist}".colorize(:red)
+			# puts "odd #{opponent_diff_dist}".colorize(:red)
+			# puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
 
 			
-			puts "number_of_pods: #{number_of_pods*2.5}".colorize(:blue)
-			puts "prong_count: #{prong_count*0.0625}".colorize(:blue)
-			puts "mobility: #{mobility*0.125}".colorize(:blue)
-			puts "bonus: #{bonus_diff}".colorize(:blue)
-			puts "deductions: #{deduc_diff}".colorize(:blue)
-			puts "result: #{val}".colorize(:red)
-			puts "player: #{player.index}".colorize(:yellow)
-			# if player_scoring_opp + opponent_scoring_opp != 0
-			#  	val = player_scoring_opp + opponent_scoring_opp
-			# end	
-		 puts "------------------------------------------------"
+			# puts "number_of_pods: #{number_of_pods*2.5}".colorize(:blue)
+			# puts "prong_count: #{prong_count*0.0625}".colorize(:blue)
+			# puts "mobility: #{mobility*0.125}".colorize(:blue)
+			# puts "bonus: #{bonus_diff}".colorize(:blue)
+			# puts "deductions: #{deduc_diff}".colorize(:blue)
+			# puts "result: #{val}".colorize(:red)
+			# puts "player: #{player.index}".colorize(:yellow)
+			# # if player_scoring_opp + opponent_scoring_opp != 0
+			# #  	val = player_scoring_opp + opponent_scoring_opp
+			# # end	
+		 #puts "------------------------------------------------"
 
 			return val
 		end	
@@ -388,8 +388,8 @@ module Octi
 			#debugger
 			
 			if can_score?(curr_player)
-				bonus_score = bonus_score+50
-				puts "bs1: #{bonus_score} "
+				bonus_score = bonus_score+25
+			#	puts "bs1: #{bonus_score} "
 			end
 			for l in @podLocs[curr_player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
@@ -410,48 +410,48 @@ module Octi
 							# end
 
 							if has_prongs(pod, 0, 0) && has_prongs(pod, 2,2)
-								bonus_score = bonus_score + 1
-								puts "bs2: #{bonus_score} "
+								bonus_score = bonus_score + 0.5
+								#puts "bs2: #{bonus_score} "
 							end
 							if has_prongs(pod, 1, 0) && has_prongs(pod, 1,2)
-								bonus_score = bonus_score + 1.5
-								puts "bs3: #{bonus_score} "
+								bonus_score = bonus_score + 0.5
+								#puts "bs3: #{bonus_score} "
 							end
 							if has_prongs(pod, 2, 0) && has_prongs(pod, 0,2)
-								bonus_score = bonus_score + 1
-								puts "bs4: #{bonus_score} "
+								bonus_score = bonus_score + 0.5
+							#	puts "bs4: #{bonus_score} "
 							end
 							if has_prongs(pod, 0, 1) && has_prongs(pod, 2,1)
-								bonus_score = bonus_score + 1
-								puts "bs5: #{bonus_score} "
+								bonus_score = bonus_score + 0.5
+							#	puts "bs5: #{bonus_score} "
 							end
 						
 							if curr_player.index == 1 
 								if l.y == 3
-									bonus_score = bonus_score + 1
-									puts "bs6: #{bonus_score} "
+									bonus_score = bonus_score + 0.5
+								#	puts "bs6: #{bonus_score} "
 								end
-								if l.y > 3
-									bonus_score = bonus_score + 1
-									puts "bs7: #{bonus_score} "
+								if l.y < 3
+									bonus_score = bonus_score + 0.5
+								#	puts "bs7: #{bonus_score} "
 								end
 							
-							 	if (i == 1 && j==0)
-									bonus_score = bonus_score + 0.5
-									puts "bs8: #{bonus_score} "
+							 	if has_prongs(pod, 1, 0)
+									bonus_score = bonus_score + 0.25
+								#	puts "bs8: #{bonus_score} "
 								end
 							elsif curr_player.index == 0
 								if l.y == 3
-									bonus_score = bonus_score + 1
-									puts "bs9: #{bonus_score} "
-								end
-								if l.y < 3
-									bonus_score = bonus_score + 1
-									 puts "bs10: #{bonus_score} "
-								end
-								if (i == 1 && j== 2)
 									bonus_score = bonus_score + 0.5
-									puts "bs11: #{bonus_score} "
+								#	puts "bs9: #{bonus_score} "
+								end
+								if l.y > 3
+									bonus_score = bonus_score + 0.5
+								#	 puts "bs10: #{bonus_score} "
+								end
+								if has_prongs(pod, 1, 2)
+									bonus_score = bonus_score + 0.25
+								#	puts "bs11: #{bonus_score} "
 								end
 							end
 						end

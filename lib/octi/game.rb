@@ -17,7 +17,7 @@ module Octi
 
 		def run(current_position, player_to_move)
 			if current_position.game_ended?(player_to_move)
-				ap winner(current_position.end_value(player_to_move))
+			 winner(current_position.end_value(player_to_move))
 			else
 				next_move = turn(player_to_move, current_position)
 				@moves_made[player_to_move.index].push(next_move)
@@ -25,6 +25,7 @@ module Octi
 				if next_move != nil
 					c_p = next_move.execute_move(current_position)
 					current_position = c_p
+					 winner(current_position.end_value(player_to_move))
 				end 
 				run(current_position, current_position.other_player(player_to_move)) 
 			end
@@ -34,10 +35,9 @@ module Octi
 			#puts "Entering bestmove[depth: #{depth}]".colorize(:blue)
 			if position.game_ended?(player)	
 
-				puts "G_O:depth:#{depth}, p:#{player.index}, #{position.end_value(player)}, #{position.heuristic_value(player)}".colorize(:green)
+			#	puts "G_O:depth:#{depth}, p:#{player.index}, #{position.end_value(player)}, #{position.heuristic_value(player)}".colorize(:green)
 			  return nil, position.end_value(player)	
 			elsif depth == 0
-		#	puts "end of tree 0"
 			  return nil, position.heuristic_value(player)
 			else
 				best_move = nil
@@ -56,15 +56,16 @@ module Octi
 				return print_bestmove(best_move, best_value, depth, player,position)
 	        end
 	    end	
+	    
 	    def print_bestmove(m, v, d, p,position)
 	 
 	   		position.game_ended?(p)
 
 	    	#puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
-	    	puts "exiting bestmove: #{print_move(m)} p#{p.index} v#{v}"
+	    #	puts "exiting bestmove: #{print_move(m)} p#{p.index} v#{v}"
 	    	if m.class == Insert && p.index == 1
 	    		 
-	    		puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
+	    	#	puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
 	    	end
 	    	
 	    	return m,v
@@ -85,6 +86,7 @@ module Octi
 				if options_prompt != nil
 					move_choice = @ui.get_input(options_prompt.print_options)
 				else
+					puts"fadfa"
 					return nil
 				end
 				while !(1..3).include?(move_choice.to_i)
@@ -126,11 +128,9 @@ module Octi
 
 		def winner(value)
 			if value == 100
-				puts "GAME OVER. You lost :(".colorize(:red)
+				abort( "GAME OVER. You lost :(")
 			elsif value == -100
 				puts "You won!".colorize(:green)
-			else
-				puts "Error".colorize(:red)
 			end
 
 		end
