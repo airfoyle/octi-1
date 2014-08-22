@@ -32,10 +32,16 @@ module Octi
 				new_comp = Player.new(index, count)
 				new_human = position.human
 				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
+				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
 			elsif index == position.human.index
 				new_comp = position.comp
 				new_human = Player.new(index, count)
 				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
+				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
 			else
 				puts "ERROR".colorize(:yellow)
 			end
@@ -54,7 +60,8 @@ module Octi
 			new_pod.set_prongs(new_prongs)
 			new_array[@origin.x][@origin.y] = new_pod
 			two_array_freeze(new_array)
-
+			
+		
 			new_pos = Position.new(new_array, new_comp, new_human)
 
 			return new_pos					
@@ -77,10 +84,16 @@ module Octi
 				new_comp = Player.new(index, count)
 				new_human = position.human
 				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
+				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
 			elsif index == position.human.index
 				new_comp = position.comp
 				new_human = Player.new(index, count)
 				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
+				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
 			else
 				puts "ERROR".colorize(:yellow)
 			end
@@ -122,14 +135,20 @@ module Octi
 			index = @player.index
 
 			count = @player.prong_reserve
-			if index == position.comp.index
+		if index == position.comp.index
 				new_comp = Player.new(index, count)
 				new_human = position.human
 				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
+				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
 			elsif index == position.human.index
 				new_comp = position.comp
 				new_human = Player.new(index, count)
 				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
+				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
 			else
 				puts "ERROR".colorize(:yellow)
 			end
@@ -152,7 +171,7 @@ module Octi
 				for cap in jumped_pods
 					pod = new_array[cap.x][cap.y] 
 					if !pod.is_a?(Pod)
-						debugger
+						#debugger
 					end
 					#puts "exec jump/cap pod =#{pod}"
 					add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
