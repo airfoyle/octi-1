@@ -55,17 +55,14 @@ module Octi
 
 		def prong_inserts(player)
 			#returns coordinates of a new prong 
-			#new_player = player.clone
-			#new_player.set_prong_reserve(player.prong_reserve-1)
+		
 			inserts = []
-			count = player.prong_reserve
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
 				pod.prongs.each_with_index do |col, i|
 					col.each_with_index do |row, j|
-						if count > 0
+						if player.prong_reserve > 0
 							if !has_prongs(pod,i,j) && !(i == 1 && j == 1)
-								count = count - 1
 								inserts << Insert.new(l,i,j, player)				
 							end
 						else
@@ -74,6 +71,7 @@ module Octi
 					end
 				end	
 			end	
+
 			return inserts	
 		end
 
@@ -112,6 +110,7 @@ module Octi
 			avoid = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
+				avoid << l
 				a_jump = jumpy(pod, jumped, l,l, player, avoid)
 				#puts "J:end of recursion:#{a_jump}"
 				if !a_jump.empty?
@@ -139,7 +138,7 @@ module Octi
 						pod_loc = Location.new(c.x+delta_x, c.y+delta_y) #c = captured pod
 
 						#destination is on board and pod is being jumped to get to destination
-						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && @pods[d.x][d.y] == nil && !avoid_loc(pod_loc, avoid)
+						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && (@pods[d.x][d.y] == nil) && !avoid_loc(pod_loc, avoid)
 							
 							#puts "J:pod:#{pod}|j_p:#{jumped_p}|s:#{s}|c:#{c}|p: #{player}|a:#{avoid}".colorize(:red)
 						
@@ -151,6 +150,11 @@ module Octi
 							to = Location.new(d.x,d.y) 
 
 							#player can jump opponent's pods and his own pods
+
+							if pod_loc.x ==s.x && pod_loc.y ==s.y
+								puts "HERE!!!".colorize(:red)
+							end
+
 							jumped_p << pod_loc
 							avoid << pod_loc 
 
@@ -187,8 +191,6 @@ module Octi
 			end
 			return false 
 		end
-################################################
-#function is causing program to run slowly. infinite loop??
 		def captured(jump)
 			if jump.jumped_pods.flatten.empty?
 				return jump
