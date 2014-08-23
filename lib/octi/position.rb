@@ -151,9 +151,9 @@ module Octi
 
 							#player can jump opponent's pods and his own pods
 
-							if pod_loc.x ==s.x && pod_loc.y ==s.y
-								puts "HERE!!!".colorize(:red)
-							end
+							# if pod_loc.x ==s.x && pod_loc.y ==s.y
+							# 	puts "HERE!!!".colorize(:red)
+							# end
 
 							jumped_p << pod_loc
 							avoid << pod_loc 
@@ -396,20 +396,22 @@ module Octi
 			for l in @podLocs[curr_player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
-					
+					#proximity to the pod
+
 					pod.prongs.each_with_index do |col, i|
 						col.each_with_index do |row, j|
-							# if has_prongs(pod, i, j) && !(i == 1 && j == 1)
-							# 	delta_x = i -1
-							# 	delta_y = j-1
-							# 	d = Location.new(l.x+delta_x, l.y+delta_y) # destination
+							 if has_prongs(pod, i, j) && !(i == 1 && j == 1)
+							 	delta_x = i -1
+							 	delta_y = j-1
+							 	d = Location.new(l.x+delta_x, l.y+delta_y) # destination
 							# 	#&& d.x and d.y are bases
 							# 	other_player(curr_player).opponent_bases.each do |o_base|
-							# 		if on_board(d.x,d.y) && (d.x == o_base.x && d.y == o_base.y)
-							# 			bonus_score = bonus_score +12.5
-							# 		end
+							 		if on_board(d.x,d.y) && is_friendly?(d.x,d.y,curr_player)
+							 			bonus_score = bonus_score+0.625
+							 		end
 							# 	end
-							# end
+							 end
+
 
 							if has_prongs(pod, 0, 0) && has_prongs(pod, 2,2)
 								bonus_score = bonus_score + 0.5
@@ -537,7 +539,16 @@ module Octi
 			end 
 			return false
 		end
-		
+		def is_friendly?(x,y, curr_player)
+			#return true if given coordinates relate to a friendly pod 
+			@podLocs[curr_player.index].each do |l|
+				if l.x == x && l.y == y
+					return true
+				end 
+			end 
+			return false
+		end
+
 		def game_ended?(player)
 			if (val = end_value(player)) != nil
 				#puts "val= #{val}".colorize(:blue)

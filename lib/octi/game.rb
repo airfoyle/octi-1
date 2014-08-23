@@ -17,7 +17,7 @@ module Octi
 
 		def run(current_position, player_to_move)
 			if current_position.game_ended?(player_to_move)
-			 winner(current_position.end_value(player_to_move))
+			 winner(current_position.end_value(player_to_move), player_to_move)
 			else
 				next_move = turn(player_to_move, current_position)
 				@moves_made[player_to_move.index].push(next_move)
@@ -25,7 +25,7 @@ module Octi
 				if next_move != nil
 					c_p = next_move.execute_move(current_position)
 					current_position = c_p
-					 winner(current_position.end_value(player_to_move))
+					 winner(current_position.end_value(player_to_move), player_to_move)
 				end 
 				run(current_position, current_position.other_player(player_to_move)) 
 			end
@@ -125,11 +125,14 @@ module Octi
 			return nil
 		end
 
-		def winner(value)
+		def winner(value, player)
 			if value == 100
-				abort( "GAME OVER. You lost :(")
-			elsif value == -100
-				puts "You won!".colorize(:green)
+				if player.index == 0
+					abort( "GAME OVER. You lose.")
+				elsif player.index == 1
+			 	 #value == -100
+					abort( "GAME OVER. You win!")
+				end
 			end
 
 		end
