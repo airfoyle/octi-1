@@ -3,9 +3,9 @@ module Octi
 		attr_reader :board_obj
 		def initialize
 			@ui = UserInterface.new
-			@comp = Player.new(0, 32)
+			@comp = Player.new(0, 12)
 
-			@human = Player.new(1, 32)
+			@human = Player.new(1, 12)
 			@board_obj = Board.new(6,7, @comp, @human)
 			@initial_position = Position.new(@board_obj.board, @comp, @human)
 		#	game_tree = GameTree.new(@initial_position)
@@ -86,7 +86,6 @@ module Octi
 				if options_prompt != nil
 					move_choice = @ui.get_input(options_prompt.print_options)
 				else
-					puts"fadfa"
 					return nil
 				end
 				while !(1..3).include?(move_choice.to_i)
