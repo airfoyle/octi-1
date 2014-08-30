@@ -155,15 +155,15 @@ module Octi
 							# 	puts "HERE!!!".colorize(:red)
 							# end
 
-							jumped_p << pod_loc
+							jumped_p << "(#{pod_loc.x},#{pod_loc.y})"
 							avoid << pod_loc 
 
-							for l in jumped_p
-								if !@pods[l.x][l.y].is_a?(Pod)
-									jumped_p.delete(l)
-									#puts "GOTCHA!"
-								end
-							end
+							# for l in jumped_p
+							# 	if !@pods[l.x][l.y].is_a?(Pod)
+							# 		jumped_p.delete(l)
+							# 		#puts "GOTCHA!"
+							# 	end
+							# end
 
 
 							results << captured(Jump.new(from, to, jumped_p, player))

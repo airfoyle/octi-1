@@ -14,12 +14,23 @@ module Octi
 	end
 
 	class Insert < Move
-		attr_reader :pod, :prongs, :inserts, :origin, :x, :y
+		attr_reader :pod, :prongs, :inserts, :origin, :x, :y, :direction
 		def initialize(pod,x,y,player)
 			@origin = pod #pod location
 			@x = x
 			@y = y
 			@player = player
+			@direction = Array.new(3) { Array.new(3) }
+			@direction[0][0] = "Northwest"
+			@direction[1][0] = "North"
+			@direction[2][0] = "Northeast"
+			@direction[0][1] = "West"
+			@direction[0][2] = "Southwest"
+			@direction[1][2] = "South"
+			@direction[2][1] = "East"
+			@direction[2][2] = "Southeast"
+			
+
 			#@new_prong_reserve = player.prong_reserve-1
 		end
 
