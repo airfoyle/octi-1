@@ -110,7 +110,7 @@ module Octi
 			avoid = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				avoid << l
+				#avoid << l
 				a_jump = jumpy(pod, jumped, l,l, player, avoid)
 				#puts "J:end of recursion:#{a_jump}"
 				if !a_jump.empty?
@@ -155,7 +155,7 @@ module Octi
 							# 	puts "HERE!!!".colorize(:red)
 							# end
 
-							jumped_p << "(#{pod_loc.x},#{pod_loc.y})"
+							jumped_p << pod_loc
 							avoid << pod_loc 
 
 							# for l in jumped_p
@@ -165,7 +165,7 @@ module Octi
 							# 	end
 							# end
 
-
+							#debugger
 							results << captured(Jump.new(from, to, jumped_p, player))
 							
 							#results << Jump.new(from, to, jumped_p, player)

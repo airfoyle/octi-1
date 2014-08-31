@@ -60,16 +60,7 @@ module Octi
 	    end	
 	    
 	    def print_bestmove(m, v, d, p,position)
-	 
 	   		position.game_ended?(p)
-
-	    	#puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
-	    #	puts "exiting bestmove: #{print_move(m)} p#{p.index} v#{v}"
-	    	if m.class == Insert && p.index == 1
-	    		 
-	    	#	puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
-	    	end
-	    	
 	    	return m,v
 	    end
 
@@ -84,10 +75,16 @@ module Octi
 				return val[0]
 			elsif player.index == 1
 				@@count = @@count+1
+				
 				puts "Your options ...".colorize(:yellow)
 				options_prompt = get_options(position, player)
+				
 				if options_prompt != nil
 					move_choice = @ui.get_input(options_prompt.print_options, count)
+					if move_choice =~ /[q]$|(quit)/i
+						puts "Quitting..."
+						abort("Goodbye.")
+					end
 				else
 					return nil
 				end
@@ -95,8 +92,32 @@ module Octi
 					puts "Please Choose a valid option.".colorize(:red)
 					move_choice = @ui.get_input(options_prompt.print_options,count) 
 				end
-				final_choice = options_prompt.choose_key(move_choice.to_i, @ui, count)
+				final_choice = options_prompt.choose_key(move_choice.to_i, @ui, count) #if "back"
+				
+				while final_choice == 0
+					puts "Your options ...".colorize(:yellow)
+					options_prompt = get_options(position, player)
+
+					if options_prompt != nil
+						move_choice = @ui.get_input(options_prompt.print_options, count)
+						if move_choice =~ /[q]$|(quit)/i
+						puts "Quitting..."
+						abort("Goodbye.")
+					end
+					else
+						return nil
+					end
+					while !(1..3).include?(move_choice.to_i)
+						puts "Please Choose a valid option.".colorize(:red)
+						move_choice = @ui.get_input(options_prompt.print_options,count) 
+					end
+					final_choice = options_prompt.choose_key(move_choice.to_i, @ui, count)
+				end
+
+
+
 				print "You chose: ".colorize(:yellow)
+				#puts "#{final_choice.origin.x}, #{final_choice.origin.y} |"+ (final_choice.class == Insert ? "Direction: #{final_choice.x},#{final_choice.y}" : "")
 				print_move(final_choice)
 				return final_choice
 			end
@@ -104,11 +125,13 @@ module Octi
 
 		def print_move(move)
 			if move.class == Insert
-					puts "Move: #{move.class}| Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
+				#puts "Move: #{move.class}| Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
+
+					puts "#{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
 			elsif move.class == Hop
-				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
+				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 			elsif move.class == Jump
-				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})|captures: #{move.jumped_pods}"
+				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" + (move.jumped_pods.empty? ? "" : "x")
 			else
 				puts "ERROR: Move is nil: #{move}".colorize(:red)
 			end

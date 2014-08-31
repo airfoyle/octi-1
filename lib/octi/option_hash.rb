@@ -26,7 +26,7 @@ module Octi
 					puts "#{key}: #{value[1]} moves = #{value[0].length}"
 				end
 			end
-			#@player.z
+			puts "\nq: Quit".colorize(:red)
 		end
 
 		def choose_key(num, ui, count)
@@ -35,21 +35,32 @@ module Octi
 			i = 1
 			for move in @h[num][0]
 				if move.class == Insert
-					puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
+					puts "#{i}: #{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
+					#puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
 				elsif move.class == Hop
-					puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
+					puts "#{i}: #{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 
-				else
-				puts "#{i}: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})|captures: #{move.jumped_pods}"
+				elsif move.class == Jump
+				puts "#{i}: #{move.origin.pretty_string} - #{move.destination.pretty_string}" + (move.jumped_pods.empty? ? "" : "x")
 				end
 				i = i +1
 			end
-			choice = ui.get_input("", count).to_i
+			puts "\n0: Previous options".colorize(:yellow)
+			puts "q: Quit".colorize(:red)
+			choice = ui.get_input("", count)
+			if choice == "0"
+				return choice.to_i
+			elsif choice =~ /[q]$|(quit)/i
+				puts "Quitting..."
+				abort("Goodbye.")
+			end
+			choice = choice.to_i
 			#puts "i:#{i}"
 			while !(1..i).include?(choice)
 				puts "Please Choose a valid option.".colorize(:red)
 				choose_key(num, ui)
 			end
+			
 			return @h[num][0][choice-1]
 		end
 	end

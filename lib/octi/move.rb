@@ -21,14 +21,14 @@ module Octi
 			@y = y
 			@player = player
 			@direction = Array.new(3) { Array.new(3) }
-			@direction[0][0] = "Northwest"
-			@direction[1][0] = "North"
-			@direction[2][0] = "Northeast"
-			@direction[0][1] = "West"
-			@direction[0][2] = "Southwest"
-			@direction[1][2] = "South"
-			@direction[2][1] = "East"
-			@direction[2][2] = "Southeast"
+			@direction[0][0] = "H"#:Northwest"
+			@direction[1][0] = "A"#:North"
+			@direction[2][0] = "B"#:Northeast"
+			@direction[0][1] = "G"#:West"
+			@direction[0][2] = "F"#:Southwest"
+			@direction[1][2] = "E"#:South"
+			@direction[2][1] = "C"#:East"
+			@direction[2][2] = "D"#:Southeast"
 			
 
 			#@new_prong_reserve = player.prong_reserve-1
