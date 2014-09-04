@@ -19,8 +19,8 @@ module Octi
 		def prong_count
 			count = 0 
 			for prong in @prongs
-				if prong 
-					count+1
+				if prong && prong != 0
+					count = count+1
 				end
 			end
 			return count

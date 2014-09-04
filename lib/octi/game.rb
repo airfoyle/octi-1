@@ -61,6 +61,7 @@ module Octi
 	    
 	    def print_bestmove(m, v, d, p,position)
 	   		position.game_ended?(p)
+	   		puts "exit bm score: #{v}|move #{m}|d:#{d}|p:#{p.index}".colorize(:red)
 	    	return m,v
 	    end
 
@@ -131,7 +132,13 @@ module Octi
 			elsif move.class == Hop
 				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 			elsif move.class == Jump
-				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" + (move.jumped_pods.empty? ? "" : "x")
+				print "#{move.origin.pretty_string} -" 
+				
+				move.steps.each do |s| 
+					print " #{s.pretty_string}" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
+				end
+
+				puts "#{move.destination.pretty_string}" 
 			else
 				puts "ERROR: Move is nil: #{move}".colorize(:red)
 			end
