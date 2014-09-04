@@ -44,7 +44,11 @@ module Octi
 				return false
 			end
 		end
-
+		
+		def opposite_prongs?(pod, i, j)
+			#todo
+		end
+		
 		def on_board(x,y)
 			if (0..5)===(x) && (0..6)===(y)
 				return true
@@ -84,8 +88,8 @@ module Octi
 				pod.prongs.each_with_index do |col, i|
 					col.each_with_index do |row, j|
 						if has_prongs(pod,i,j) && !(i == 1 && j == 1)
-							delta_x = i -1
-							delta_y = j-1
+							delta_x = i - 1
+							delta_y = j- 1
 							#delta_i = delta_x + 1
 							#delta_j = delta_y + 1
 							d = Location.new(l.x+delta_x, l.y+delta_y) # destination
@@ -106,7 +110,6 @@ module Octi
 			#returns origin and destination
 
 			avoid = []
-				jumped = []
 				jumps = []
 			
 			for l in @podLocs[player.index]
@@ -130,7 +133,7 @@ module Octi
 				col.each_with_index do |row, j|
 
 					if has_prongs(pod,i,j) && !(i == 1 && j == 1)
-						delta_x = i -1
+						delta_x = i-1
 						delta_y = j-1
 						delta_i = delta_x*2
 						delta_j = delta_y*2
@@ -177,8 +180,8 @@ module Octi
 				col.each_with_index do |row, j|
 					if has_prongs(pod,i,j) && !(i == 1 && j == 1)
 						#debugger
-						delta_x = i -1
-						delta_y = j-1
+						delta_x = i - 1
+						delta_y = j - 1
 						delta_i = delta_x*2
 						delta_j = delta_y*2
 						d = Location.new(c.x+delta_i, c.y+delta_j) #d = destination 
@@ -262,23 +265,13 @@ module Octi
 		
 		def heuristic_value(player)
 			#change variables to rep player vs opponent
-			opponent =  self.other_player(player)
 			player_number_of_pods = 0
-			opponent_number_of_pods = 0
-			
+
 			player_distance_to_base = 100
-			opponent_distance_to_base = 100
 
 			player_prongs_on_board = 0
-			opponent_prongs_on_board = 0
 			player_mobility_arr = hops(player).length + jumps(player).length
-			opponent_mobility_arr = hops(opponent).length #+ jumps(opponent).length
-
-			player_scoring_opp = 0
-			opponent_scoring_opp = 0
-
-			player_bonus = 0
-
+		
 			for l in @podLocs[player.index]
 				if @pods[l.x][l.y].is_a?(Pod)
 					pod = @pods[l.x][l.y]
@@ -373,24 +366,27 @@ module Octi
 			bonus_diff = bonus(player, 0) #- bonus(opponent, 0)
 			deduc_diff = deductions(player, 0) #- deductions(opponent, 0)
 			val = total_distance_to_base + number_of_pods*(3) + prong_count*(0.625) + mobility*(0.125)+ bonus_diff + deduc_diff
-
+				
+				if can_score?(player)
+					val = 99
+				end
 			# puts "pdd #{player_diff_dist}".colorize(:red)
 			# puts "odd #{opponent_diff_dist}".colorize(:red)
-			puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
+			# puts "total_distance_to_base: #{total_distance_to_base}".colorize(:blue)
 
 			
-			puts "number_of_pods: #{number_of_pods*3}".colorize(:blue)
-			puts "prong_count: #{prong_count*0.625}".colorize(:blue)
-			puts "mobility: #{mobility*0.125}".colorize(:blue)
-			puts "bonus: #{bonus_diff}".colorize(:blue)
-			puts "deductions: #{deduc_diff}".colorize(:blue)
-			puts "result: #{val}".colorize(:red)
-			puts "player: #{player.index}".colorize(:yellow)
-			# # if player_scoring_opp + opponent_scoring_opp != 0
-			# #  	val = player_scoring_opp + opponent_scoring_opp
-			# # end	
-		 #puts "------------------------------------------------"
-		 puts "score:#{val}"
+			# puts "number_of_pods: #{number_of_pods*3}".colorize(:blue)
+			# puts "prong_count: #{prong_count*0.625}".colorize(:blue)
+			# puts "mobility: #{mobility*0.125}".colorize(:blue)
+			# puts "bonus: #{bonus_diff}".colorize(:blue)
+			# puts "deductions: #{deduc_diff}".colorize(:blue)
+			# puts "result: #{val}".colorize(:red)
+			# puts "player: #{player.index}".colorize(:yellow)
+			# # # if player_scoring_opp + opponent_scoring_opp != 0
+			# # #  	val = player_scoring_opp + opponent_scoring_opp
+			# # # end	
+		 ##puts "------------------------------------------------"
+		 #puts "score:#{val}"
 			return val
 		end	
 
@@ -405,7 +401,7 @@ module Octi
 						end
 					end
 				end
-				count = count+1					
+				count = count + 1					
 			end
 
 			sub_score = sub_score - 10*(4-count)
@@ -416,8 +412,8 @@ module Octi
 					op = @pods[loc.x][loc.y]
 
 					if loc.x == p.x && op.prong_count > 0  && pod.prong_count < 1
-						debugger
-						sub_score  = sub_score -1
+					#	debugger
+						sub_score  = sub_score - 1
 					end
 				end
 				
@@ -427,7 +423,7 @@ module Octi
 						op = @pods[loc.x][loc.y]
 						if loc.x == p.x && op.prong_count > 0  && pod.prong_count < 1
 
-							sub_score  = sub_score -1
+							sub_score  = sub_score - 1
 						end
 
 						if (p.x - loc.x).abs > 2 && (p.y - loc.y).abs > 2
@@ -437,12 +433,12 @@ module Octi
 				end
 				if curr_player.index == 1
 					if loc.y >=3
-						sub_score  = sub_score -0.6
+						sub_score  = sub_score - 0.6
 					end
 				end
 				if curr_player.index == 0
 					if loc.y <=3
-						sub_score  = sub_score -0.6
+						sub_score  = sub_score - 0.6
 					end
 				end
 			end
@@ -459,25 +455,54 @@ module Octi
 			opponent = other_player(curr_player)
 
 			if can_score?(curr_player)
-				bonus_score = bonus_score+35
+				bonus_score = bonus_score+20
 			#	puts "bs1: #{bonus_score} "
 			end
-			for l in @podLocs[curr_player.index]
-
-				for opp_pod in @podLocs[opponent.index]	
-					op = @pods[opp_pod.x][opp_pod.y]
-					pod = @pods[l.x][l.y]
-					if opp_pod.x == l.x && op.prong_count > 0  && pod.prong_count > 0
-
-						#bonus_score = bonus_score+1
+			
+			
+			
+			for l_op in @podLocs[opponent.index]
+				if @pods[l_op.x][l_op.y].is_a?(Pod)
+					pod = @pods[l_op.x][l_op.y]
+					pod.prongs.each_with_index do |col, i|
+						col.each_with_index do |row, j|
+							#if opp has prong
+							if has_prongs(pod, i, j) && !(i == 1 && j == 1)
+								#does player have prongs on pod at that location?
+								for l_c in @podLocs[curr_player.index]
+									if l_c.x == l_op.x && @pods[l_c.x][l_c.y].is_a?(Pod)
+										c_pod = @pods[l_c.x][l_c.y]
+										if c_pod.prong_count > 0
+											#puts "bstest2.1:HERE".colorize(:red)
+											if curr_player.index == 1 
+											 	if has_prongs(c_pod, 1, 0)
+													bonus_score = bonus_score + 5
+												#	puts "bstest2.1: #{bonus_score} "
+												end
+											elsif curr_player.index == 0
+												if has_prongs(c_pod, 1, 2)
+													bonus_score = bonus_score + 5
+												#	puts "bstest2.2: #{bonus_score} "
+												end
+											end
+										end
+									end 
+								end 
+							end
+						end
 					end
 				end
+			end
+			
+			for l in @podLocs[curr_player.index]
+
+				
 
 				if !@podLocs[curr_player.index].include?(l)
 					for p in @podLocs[curr_player.index]
 						if (p.x - l.x).abs < 2 && (p.y - l.y).abs < 2
 							#bonus_score = bonus_score+1.25
-							puts "bs12: #{bonus_score} "
+						#	puts "bs12: #{bonus_score} "
 						end
 					end
 				end
@@ -488,40 +513,60 @@ module Octi
 					pod.prongs.each_with_index do |col, i|
 						col.each_with_index do |row, j|
 							 if has_prongs(pod, i, j) && !(i == 1 && j == 1)
-							 	delta_x = i -1
-							 	delta_y = j-1
-							 	d = Location.new(l.x+delta_x, l.y+delta_y) # destination
-							# 	#&& d.x and d.y are bases
-							# 	other_player(curr_player).opponent_bases.each do |o_base|
-							 		if on_board(d.x,d.y) && is_friendly?(d.x,d.y,curr_player)
-							 			#bonus_score = bonus_score+0.625
-							 		end
-							# 	end
+							 #	puts "HERE1".colorize(:green)
+							 	for opp_pod in @podLocs[opponent.index]	
+									op = @pods[opp_pod.x][opp_pod.y]
+									if opp_pod.x == l.x 
+										if op.prong_count > 0 && pod.prong_count > 0
+											
+										#	bonus_score = bonus_score + 1
+											#puts "bs_test: #{bonus_score} "
+										end
+									end
+								end
+							 	
+							#  	delta_x = i - 1
+							#  	delta_y = j- 1
+							#  	d = Location.new(l.x+delta_x, l.y+delta_y) # destination
+							# # 	#&& d.x and d.y are bases
+							# # 	other_player(curr_player).opponent_bases.each do |o_base|
+							#  		if on_board(d.x,d.y) && is_friendly?(d.x,d.y,curr_player)
+							#  			#bonus_score = bonus_score+0.625
+							#  		end
+							# # 	end
 							 end
 
-
-							if has_prongs(pod, 0, 0) && has_prongs(pod, 2,2)
-								bonus_score = bonus_score + 0.5
-								#puts "bs2: #{bonus_score} "
+							
+							if has_prongs(pod, 0, 0) || has_prongs(pod, 2,2)
+								if l.x == 4
+									bonus_score = bonus_score + 0.25
+								#	puts "bs2.1: #{bonus_score} "
+								end
+								bonus_score = bonus_score + 0.4
+							#	puts "bs2: #{bonus_score} "
 							end
-							if has_prongs(pod, 1, 0) && has_prongs(pod, 1,2)
+							if has_prongs(pod, 1, 0) || has_prongs(pod, 1,2)
 								bonus_score = bonus_score + 0.5
-								#puts "bs3: #{bonus_score} "
+							#	puts "bs3: #{bonus_score} "
 							end
-							if has_prongs(pod, 2, 0) && has_prongs(pod, 0,2)
-								bonus_score = bonus_score + 0.5
+							if has_prongs(pod, 2, 0) || has_prongs(pod, 0,2)
+								if l.x == 1
+									bonus_score = bonus_score + 0.25
+								#	puts "bs4.1: #{bonus_score} "
+								end
+								bonus_score = bonus_score + 0.4
 							#	puts "bs4: #{bonus_score} "
 							end
-							if has_prongs(pod, 0, 1) && has_prongs(pod, 2,1)
+							if has_prongs(pod, 0, 1) || has_prongs(pod, 2,1)
 								bonus_score = bonus_score + 0.5
-							#	puts "bs5: #{bonus_score} "
+								##puts "bs5: #{bonus_score} "
 							end
 						
 							if curr_player.index == 1 
 							
 								if l.y <= 3
 									bonus_score = bonus_score + 0.6
-								#	puts "bs7: #{bonus_score} "
+									#puts "bs7: #{bonus_score} "
 								end
 							
 							 	if has_prongs(pod, 1, 0)
@@ -532,11 +577,11 @@ module Octi
 							
 								if l.y >= 3
 									bonus_score = bonus_score + 0.6
-									 puts "bs10: #{bonus_score} "
+								#	 puts "bs10: #{bonus_score} "
 								end
 								if has_prongs(pod, 1, 2)
-									#bonus_score = bonus_score + 0.25
-									puts "bs11: #{bonus_score} "
+								#	bonus_score = bonus_score + 0.25
+								#	puts "bs11: #{bonus_score} "
 								end
 							end
 						end
@@ -631,7 +676,7 @@ module Octi
 		end
 
 		def game_ended?(player)
-			if (val = end_value(player)) != nil
+			if  end_value(player) != nil
 				#puts "val= #{val}".colorize(:blue)
 				return true
 			else

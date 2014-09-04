@@ -1,6 +1,5 @@
 module Octi
 	class Game
-		@@count = 1
 		attr_reader :board_obj
 		def initialize
 			@ui = UserInterface.new
@@ -20,8 +19,7 @@ module Octi
 			if current_position.game_ended?(player_to_move)
 			 winner(current_position.end_value(player_to_move), player_to_move)
 			else
-				
-				next_move = turn(player_to_move, current_position, @@count)
+				next_move = turn(player_to_move, current_position)
 				@moves_made[player_to_move.index].push(next_move)
 				#puts "move->#{next_move} ".colorize(:green)
 				if next_move != nil
@@ -34,10 +32,7 @@ module Octi
 		end
 		
 		def bestmove(position, player, depth)
-			#puts "Entering bestmove[depth: #{depth}]".colorize(:blue)
 			if position.game_ended?(player)	
-
-			#	puts "G_O:depth:#{depth}, p:#{player.index}, #{position.end_value(player)}, #{position.heuristic_value(player)}".colorize(:green)
 			  return nil, position.end_value(player)	
 			elsif depth == 0
 			  return nil, position.heuristic_value(player)
@@ -46,99 +41,66 @@ module Octi
 				best_value = player.worst_value		
 				moves = position.legal_moves(player).flatten
 				for move in moves
-				    new_move, move_value = bestmove(move.execute_move(position),
+				    move_value = bestmove(move.execute_move(position),
 				             position.other_player(player), 
 				             depth - 1)
 				    if best_move == nil || player.better_for(move_value, best_value)
-				    #	puts "BM: #{new_move}"
-				            best_move = move
-				            best_value = move_value
+				    	best_move = move
+		            	best_value = move_value
 				    end
 				end
 				return print_bestmove(best_move, best_value, depth, player,position)
-	        end
+	    	end
 	    end	
 	    
 	    def print_bestmove(m, v, d, p,position)
+	 
 	   		position.game_ended?(p)
-	   		puts "exit bm score: #{v}|move #{m}|d:#{d}|p:#{p.index}".colorize(:red)
+
+	    	#puts "Exiting bestmove[depth= #{d}]|Player: #{p.index}| best_move=#{m.class}| Pod:(#{m.origin.x}, #{m.origin.y})|best_value= #{v}".colorize(:blue)
+	    #	puts "exiting bestmove: #{print_move(m)} p#{p.index} v#{v}"
+	    	if m.class == Insert && p.index == 1
+	    		 
+	    	#	puts "Insert details: (#{m.x}, #{m.y})".colorize(:yellow)
+	    	end
+	    	
 	    	return m,v
 	    end
 
-		def turn(player, position, count)
+		def turn(player, position)
 			if player.index == 0
-				print "I chose: ".colorize(:yellow)
+				puts "Now it's my turn...".colorize(:yellow)
 				val = bestmove(position,player,2)
-				#puts "I have chosen...".colorize(:yellow)
+				puts "I have chosen...".colorize(:yellow)
 
 				print_move(val[0])
 
 				return val[0]
 			elsif player.index == 1
-				@@count = @@count+1
-				
 				puts "Your options ...".colorize(:yellow)
 				options_prompt = get_options(position, player)
-				
 				if options_prompt != nil
-					move_choice = @ui.get_input(options_prompt.print_options, count)
-					if move_choice =~ /[q]$|(quit)/i
-						puts "Quitting..."
-						abort("Goodbye.")
-					end
+					move_choice = @ui.get_input(options_prompt.print_options)
 				else
 					return nil
 				end
 				while !(1..3).include?(move_choice.to_i)
 					puts "Please Choose a valid option.".colorize(:red)
-					move_choice = @ui.get_input(options_prompt.print_options,count) 
+					move_choice = @ui.get_input(options_prompt.print_options) 
 				end
-				final_choice = options_prompt.choose_key(move_choice.to_i, @ui, count) #if "back"
+				final_choice = options_prompt.choose_key(move_choice.to_i, @ui)
 				
-				while final_choice == 0
-					puts "Your options ...".colorize(:yellow)
-					options_prompt = get_options(position, player)
-
-					if options_prompt != nil
-						move_choice = @ui.get_input(options_prompt.print_options, count)
-						if move_choice =~ /[q]$|(quit)/i
-						puts "Quitting..."
-						abort("Goodbye.")
-					end
-					else
-						return nil
-					end
-					while !(1..3).include?(move_choice.to_i)
-						puts "Please Choose a valid option.".colorize(:red)
-						move_choice = @ui.get_input(options_prompt.print_options,count) 
-					end
-					final_choice = options_prompt.choose_key(move_choice.to_i, @ui, count)
-				end
-
-
-
-				print "You chose: ".colorize(:yellow)
-				#puts "#{final_choice.origin.x}, #{final_choice.origin.y} |"+ (final_choice.class == Insert ? "Direction: #{final_choice.x},#{final_choice.y}" : "")
-				print_move(final_choice)
 				return final_choice
 			end
 		end
 
 		def print_move(move)
 			if move.class == Insert
-				#puts "Move: #{move.class}| Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
-
-					puts "#{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
+					puts "Move: #{move.class}| Pod Location:(#{move.origin.x}, #{move.origin.y}) | Insert prong at: (#{move.x}, #{move.y})" #color?
 			elsif move.class == Hop
-				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" 
+				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})" 
 			elsif move.class == Jump
-				print "#{move.origin.pretty_string} -" 
-				
-				move.steps.each do |s| 
-					print " #{s.pretty_string}" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
-				end
-
-				puts "#{move.destination.pretty_string}" 
+				puts "Move: #{move.class}|Pod Location:(#{move.origin.x}, #{move.origin.y}) | Pod Destination: (#{move.destination.x}, #{move.destination.y})|captures: #{move.jumped_pods}"
 			else
 				puts "ERROR: Move is nil: #{move}".colorize(:red)
 			end
@@ -148,8 +110,8 @@ module Octi
 			for move in @moves_made[index]
 				print_move(move)
 			end
+			
 		end
-
 		def get_options(position, player)
 			all = position.legal_moves(player)
 			if all.flatten != nil
