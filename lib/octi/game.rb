@@ -61,7 +61,7 @@ module Octi
 	    
 	    def print_bestmove(m, v, d, p,position)
 	   		position.game_ended?(p)
-	   		puts "exit bm score: #{v}|move #{m}|d:#{d}|p:#{p.index}".colorize(:red)
+	   		#puts "exit bm score: #{v}|move #{m}|d:#{d}|p:#{p.index}".colorize(:red)
 	    	return m,v
 	    end
 
