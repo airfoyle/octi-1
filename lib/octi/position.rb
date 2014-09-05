@@ -115,25 +115,30 @@ module Octi
 			results = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				all = jumpy_new(pod,l, player, avoid, [])
-
-				initial << all[0]
-				initial << all[1]
-				results << initial
-				continuation = all[2..-1]
-				
-				if !continuation.empty?
-					if continuation.length > 0 && initial.length > 0
-						for ic in initial do
-							for c in continuation
-								results  << Jump.new(ic.origin, c.destination,ic.jumped_pods+c.jumped_pods,ic.steps+c.steps, player)
-								initial = tail(initial)
-							end
-							
-							initial << results[-initial.length..-1]
-						end
-					end
+				results << jumpy(pod,l,l, player, avoid, [])
+				if results.class == nil
+					puts "HERE"
 				end
+			#	puts results
+				# all = jumpy_new(pod,l, player, avoid, [])
+
+				# initial << all[0]
+				# initial << all[1]
+				# results << initial
+				# continuation = all[2..-1]
+				
+				# if !continuation.empty?
+				# 	if continuation.length > 0 && initial.length > 0
+				# 		for ic in initial do
+				# 			for c in continuation
+				# 				results  << Jump.new(ic.origin, c.destination,ic.jumped_pods+c.jumped_pods,ic.steps+c.steps, player)
+				# 				initial = tail(initial)
+				# 			end
+							
+				# 			initial << results[-initial.length..-1]
+				# 		end
+				# 	end
+				# end
 			end
 	
 			return results.flatten
@@ -164,7 +169,7 @@ module Octi
 		def tail(l)
 			return l[1..-1]
 		end
-		def jumpy_new(pod, c, player, avoid, steps)
+		def jumpy_new(pod,s, c, player, avoid, steps)
 			initial = Array.new
 			continuation = Array.new
 			#results = Array.new	
@@ -182,7 +187,7 @@ module Octi
 						#destination is on board and pod is being jumped to get to destination
 						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && (@pods[d.x][d.y] == nil) && !avoid_loc(pod_loc, avoid)
 							
-							from = Location.new(c.x,c.y)
+							from = Location.new(s.x,s.y)
 							to = Location.new(d.x,d.y) 
 							#intermediate steps - 
 
@@ -198,7 +203,17 @@ module Octi
 			return continuation.flatten
 		end
 		
-		def jumpy(pod,  c, player, avoid,steps)
+		def combine(initial, continuation)
+			results = Array.new
+			for i in initial
+				for c in continuation
+					results = Jump.new(ic.origin, c.destination,ic.jumped_pods+c.jumped_pods,ic.steps+c.steps, player)
+				end
+			end 
+			return results 	
+		end 
+		
+		def jumpy(pod,s,  c, player, avoid,steps)
 			results = Array.new
 			
 			
@@ -216,22 +231,22 @@ module Octi
 						#destination is on board and pod is being jumped to get to destination
 						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && (@pods[d.x][d.y] == nil) && !avoid_loc(pod_loc, avoid)
 		
-							from = Location.new(c.x,c.y)
+							from = Location.new(s.x,s.y)
 							to = Location.new(d.x,d.y) 
 
 	
-							results << Jump.new(from, to, steps+[pod_loc], [], player)
-							results << Jump.new(from, to, steps+[pod_loc], avoid+[pod_loc], player)
-							
-							return jumpy(pod, d, player, avoid+[pod_loc],steps)+results
+							#results << Jump.new(from, to, steps+[d], [], player)
+							results << Jump.new(from, to, steps, avoid+[pod_loc], player)
+							results << captured(Jump.new(from, to, steps+[pod_loc], avoid+[pod_loc], player))
+							return results+jumpy(pod, s,d, player, avoid+[pod_loc], steps+[d])
 						end
 					end
 				end
 			end
-			return [] #return results.flatten#results.flatten
+			return results.flatten#results.flatten
 		end
 		
-		#check if pod should be avoided
+		#check if pod should be avoided0
 		def avoid_loc(pod_loc, avoid)
 			for l in avoid 
 				if (l.x == pod_loc.x) && (l.y ==pod_loc.y)
@@ -245,10 +260,10 @@ module Octi
 				return jump
 			end 
 			results = Array.new() 
-			for i in  1..(jump.jumped_pods.length+1) 
+			for i in  0..(jump.jumped_pods.length+1) 
 				list = jump.jumped_pods.combination(i).to_a
 				for item in list
-					new_jump = Jump.new(jump.origin, jump.destination, Array.new(), jump.player)
+					new_jump = Jump.new(jump.origin, jump.destination, jump.steps,Array.new(), jump.player)
 					new_jump.set_captures(item.to_a)
 					results << new_jump
 				end

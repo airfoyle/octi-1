@@ -132,13 +132,15 @@ module Octi
 			elsif move.class == Hop
 				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 			elsif move.class == Jump
-				print "#{move.origin.pretty_string} -" 
+				print "#{move.origin.pretty_string}o -" 
 				
 				move.steps.each do |s| 
-					print " #{s.pretty_string}" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
+					print " #{s.pretty_string}s" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
 				end
-
-				puts "#{move.destination.pretty_string}" 
+				move.jumped_pods.each do |capture| 
+					print " #{capture.pretty_string}c" + (move.jumped_pods.include?(capture) ? "x - "  : " - " )
+				end
+				puts "#{move.destination.pretty_string}d" 
 			else
 				puts "ERROR: Move is nil: #{move}".colorize(:red)
 			end

@@ -41,13 +41,25 @@ module Octi
 					puts "#{i}: #{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 
 				elsif move.class == Jump
-				print "#{i}: #{move.origin.pretty_string} -" 
+				print "#{i}: #{move.origin.pretty_string}o -" 
 				
-				move.steps.each do |s| 
-					print " #{s.pretty_string}" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
+				# 	move.steps.each do |s| 
+				# 	print " #{s.pretty_string}s" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
+				# end
+				# move.jumped_pods.each do |capture| 
+				# 	print " #{capture.pretty_string}c" + (move.jumped_pods.include?(capture) ? "x - "  : " - " )
+				# end
+				j=0
+				while j < move.steps.length || j < move.jumped_pods.length
+					if j < move.jumped_pods.length 
+						print "#{move.jumped_pods[j].pretty_string}x - "
+					end 
+					if j < move.steps.length
+						print "#{move.steps[j].pretty_string}s - "
+					end 
+					j = j + 1
 				end
-
-				puts "#{move.destination.pretty_string}" 
+				puts "#{move.destination.pretty_string}d" 
 				end
 				i = i +1
 			end
