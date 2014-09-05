@@ -55,7 +55,7 @@ module Octi
 						#print "#{move.jumped_pods[j].pretty_string}x - "
 					end 
 					if j < move.steps.length
-						if j < move.jumped_pods.length 
+						if j < move.jumped_pods.length && move.jumped_pods.include?(move.steps[j])
 							print "#{move.steps[j].pretty_string}x - "
 						else
 							print "#{move.steps[j].pretty_string}s - "
