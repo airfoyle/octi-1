@@ -182,12 +182,13 @@ module Octi
 				#puts "jumped_pods: #{jumped_pods}"
 				for cap in jumped_pods
 					pod = new_array[cap.x][cap.y] 
-					if !pod.is_a?(Pod)
+					if pod.is_a?(Pod)
+						add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
+						new_array[cap.x][cap.y] = nil
+					else
 						#debugger
 					end
-					#puts "exec jump/cap pod =#{pod}"
-					add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
-					new_array[cap.x][cap.y] = nil
+					
 				end
 			end
 			new_array[@origin.x][@origin.y] = nil
