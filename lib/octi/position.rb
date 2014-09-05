@@ -236,8 +236,8 @@ module Octi
 
 	
 							#results << Jump.new(from, to, steps+[d], [], player)
-							results << Jump.new(from, to, steps, avoid+[pod_loc], player)
-							results << captured(Jump.new(from, to, steps+[pod_loc], avoid+[pod_loc], player))
+							#results << Jump.new(from, to, steps+[pod_loc, avoid+[pod_loc], player)
+							results << captured(Jump.new(from, to, steps<< pod_loc, avoid+[pod_loc], player))
 							return results+jumpy(pod, s,d, player, avoid+[pod_loc], steps+[d])
 						end
 					end

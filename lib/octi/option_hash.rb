@@ -52,10 +52,15 @@ module Octi
 				j=0
 				while j < move.steps.length || j < move.jumped_pods.length
 					if j < move.jumped_pods.length 
-						print "#{move.jumped_pods[j].pretty_string}x - "
+						#print "#{move.jumped_pods[j].pretty_string}x - "
 					end 
 					if j < move.steps.length
-						print "#{move.steps[j].pretty_string}s - "
+						if j < move.jumped_pods.length 
+							print "#{move.steps[j].pretty_string}x - "
+						else
+							print "#{move.steps[j].pretty_string}s - "
+						end
+						#print "#{move.steps[j].pretty_string}s - "
 					end 
 					j = j + 1
 				end
