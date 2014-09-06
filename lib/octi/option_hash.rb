@@ -29,6 +29,14 @@ module Octi
 			puts "\nq: Quit".colorize(:red)
 		end
 
+		def loc_include?(arr, l)
+			for loc in arr
+				if loc.x == l.x && loc.y == l.y
+					return true
+				end
+			end
+			return false 
+		end
 		def choose_key(num, ui, count)
 			#check for errors
 			puts "Select the #{@h[num][1]} you wish to execute".colorize(:yellow)
@@ -36,35 +44,24 @@ module Octi
 			for move in @h[num][0]
 				if move.class == Insert
 					puts "#{i}: #{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
-					#puts "#{i}: Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
 				elsif move.class == Hop
 					puts "#{i}: #{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 
 				elsif move.class == Jump
-				print "#{i}: #{move.origin.pretty_string}o -" 
-				
-				# 	move.steps.each do |s| 
-				# 	print " #{s.pretty_string}s" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
-				# end
-				# move.jumped_pods.each do |capture| 
-				# 	print " #{capture.pretty_string}c" + (move.jumped_pods.include?(capture) ? "x - "  : " - " )
-				# end
+				print "#{i}: #{move.origin.pretty_string} - " 
+
 				j=0
 				while j < move.steps.length || j < move.jumped_pods.length
-					if j < move.jumped_pods.length 
-						#print "#{move.jumped_pods[j].pretty_string}x - "
-					end 
 					if j < move.steps.length
-						if j < move.jumped_pods.length && move.jumped_pods.include?(move.steps[j])
+						if loc_include?(move.jumped_pods, move.steps[j]) 
 							print "#{move.steps[j].pretty_string}x - "
 						else
-							print "#{move.steps[j].pretty_string}s - "
+							print "#{move.steps[j].pretty_string} - "
 						end
-						#print "#{move.steps[j].pretty_string}s - "
 					end 
 					j = j + 1
 				end
-				puts "#{move.destination.pretty_string}d" 
+				puts "#{move.destination.pretty_string}" 
 				end
 				i = i +1
 			end

@@ -123,24 +123,34 @@ module Octi
 				return final_choice
 			end
 		end
-
+		def loc_include?(arr, l)
+			for loc in arr
+				if loc.x == l.x && loc.y == l.y
+					return true
+				end
+			end
+			return false 
+		end
 		def print_move(move)
 			if move.class == Insert
-				#puts "Move: #{move.class}| Pod Location:(#{move.origin.x}, #{move.origin.y}) | Direction: #{move.direction[move.x][move.y]}" #color?
-
-					puts "#{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
+				puts "#{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
 			elsif move.class == Hop
 				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 			elsif move.class == Jump
-				print "#{move.origin.pretty_string}o -" 
+				print "#{move.origin.pretty_string} - " 
 				
-				move.steps.each do |s| 
-					print " #{s.pretty_string}s" + (move.jumped_pods.include?(s) ? "x - "  : " - " )
+				j=0
+				while j < move.steps.length || j < move.jumped_pods.length
+					if j < move.steps.length
+						if loc_include?(move.jumped_pods, move.steps[j]) 
+							print "#{move.steps[j].pretty_string}x - "
+						else
+							print "#{move.steps[j].pretty_string} - "
+						end
+					end 
+					j = j + 1
 				end
-				move.jumped_pods.each do |capture| 
-					print " #{capture.pretty_string}c" + (move.jumped_pods.include?(capture) ? "x - "  : " - " )
-				end
-				puts "#{move.destination.pretty_string}d" 
+				puts "#{move.destination.pretty_string}" 
 			else
 				puts "ERROR: Move is nil: #{move}".colorize(:red)
 			end
@@ -166,7 +176,6 @@ module Octi
 				if player.index == 0
 					abort( "GAME OVER. You lose.")
 				elsif player.index == 1
-			 	 #value == -100
 					abort( "GAME OVER. You win!")
 				end
 			end

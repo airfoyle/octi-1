@@ -90,8 +90,6 @@ module Octi
 						if has_prongs(pod,i,j) && !(i == 1 && j == 1)
 							delta_x = i - 1
 							delta_y = j- 1
-							#delta_i = delta_x + 1
-							#delta_j = delta_y + 1
 							d = Location.new(l.x+delta_x, l.y+delta_y) # destination
 							if (on_board(d.x,d.y) && @pods[d.x][d.y] == nil)
 								from = Location.new(l.x,l.y)
@@ -110,113 +108,17 @@ module Octi
 			#returns origin and destination
 
 			avoid = []
-				jumps = []
-			initial = []
-			results = []
+			jumps = []
 			for l in @podLocs[player.index]
 				pod = @pods[l.x][l.y]
-				results << jumpy(pod,l,l, player, avoid, [])
-				if results.class == nil
-					puts "HERE"
-				end
-			#	puts results
-				# all = jumpy_new(pod,l, player, avoid, [])
-
-				# initial << all[0]
-				# initial << all[1]
-				# results << initial
-				# continuation = all[2..-1]
-				
-				# if !continuation.empty?
-				# 	if continuation.length > 0 && initial.length > 0
-				# 		for ic in initial do
-				# 			for c in continuation
-				# 				results  << Jump.new(ic.origin, c.destination,ic.jumped_pods+c.jumped_pods,ic.steps+c.steps, player)
-				# 				initial = tail(initial)
-				# 			end
-							
-				# 			initial << results[-initial.length..-1]
-				# 		end
-				# 	end
-				# end
+				jumps << jumpy(pod,l,l, player, avoid, [])
 			end
 	
-			return results.flatten
-		end
-		def reverse1(l)
-			if l == [] 
-				return []
-			else
-				reverse1(tail(l))+[head(l)]
-			end
+			return jumps.flatten
 		end
 
-		def reverse2(l)
-			reverse2aux(l,[])
-		end
-
-		def reverse2aux(l, sofar)
-			if l == []
-				return sofar
-			else
-				reverse2aux(tail(l), [head(l)]+sofar)
-			end
-		end
-
-		def head(l)
-			return l[0]
-		end
-		def tail(l)
-			return l[1..-1]
-		end
-		def jumpy_new(pod,s, c, player, avoid, steps)
-			initial = Array.new
-			continuation = Array.new
-			#results = Array.new	
-			pod.prongs.each_with_index do |col, i|
-				col.each_with_index do |row, j|
-
-					if has_prongs(pod,i,j) && !(i == 1 && j == 1)
-						delta_x = i-1
-						delta_y = j-1
-						delta_i = delta_x*2
-						delta_j = delta_y*2
-						d = Location.new(c.x+delta_i, c.y+delta_j) #d = destination 
-						pod_loc = Location.new(c.x+delta_x, c.y+delta_y) #c = captured pod
-
-						#destination is on board and pod is being jumped to get to destination
-						if on_board(d.x, d.y) && @pods[pod_loc.x][pod_loc.y].is_a?(Pod) && (@pods[d.x][d.y] == nil) && !avoid_loc(pod_loc, avoid)
-							
-							from = Location.new(s.x,s.y)
-							to = Location.new(d.x,d.y) 
-							#intermediate steps - 
-
-							#without capture ==>[pod_loc]
-							continuation << Jump.new(from, to, steps+[pod_loc],[], player)
-							continuation << Jump.new(from, to, steps+[pod_loc],avoid+[pod_loc], player)
-							
-							continuation = jumpy(pod, to, player, avoid+[pod_loc]+[to],steps+[to])
-						end
-					end
-				end
-			end
-			return continuation.flatten
-		end
-		
-		def combine(initial, continuation)
-			results = Array.new
-			for i in initial
-				for c in continuation
-					results = Jump.new(ic.origin, c.destination,ic.jumped_pods+c.jumped_pods,ic.steps+c.steps, player)
-				end
-			end 
-			return results 	
-		end 
-		
 		def jumpy(pod,s,  c, player, avoid,steps)
 			results = Array.new
-			
-			
 			pod.prongs.each_with_index do |col, i|
 				col.each_with_index do |row, j|
 					if has_prongs(pod,i,j) && !(i == 1 && j == 1)
@@ -234,16 +136,13 @@ module Octi
 							from = Location.new(s.x,s.y)
 							to = Location.new(d.x,d.y) 
 
-	
-							#results << Jump.new(from, to, steps+[d], [], player)
-							#results << Jump.new(from, to, steps+[pod_loc, avoid+[pod_loc], player)
-							results << captured(Jump.new(from, to, steps<< pod_loc, avoid<< pod_loc, player))
-							return results+jumpy(pod, s,d, player, avoid<< pod_loc, steps+[d])
+							results << captured(Jump.new(from, to, steps+[pod_loc], avoid+[pod_loc], player))
+							return results+jumpy(pod, s,d, player, avoid+[pod_loc], steps+[pod_loc,d])
 						end
 					end
 				end
 			end
-			return results.flatten#results.flatten
+			return results.flatten
 		end
 		
 		#check if pod should be avoided0
@@ -260,15 +159,16 @@ module Octi
 				return jump
 			end 
 			results = Array.new() 
-			for i in  0..(jump.jumped_pods.length+1) 
+			for i in  0..(jump.jumped_pods.length) 
 				list = jump.jumped_pods.combination(i).to_a
 				for item in list
+
 					new_jump = Jump.new(jump.origin, jump.destination, jump.steps,Array.new(), jump.player)
-					new_jump.set_captures(item.to_a)
+					unless item.empty? then
+						new_jump.set_captures(item.to_a)
+					end
 					results << new_jump
 				end
-
-				#puts "combos:#{jump.jumped_pods.combination(i).to_a }"
 			end
 			return results
 
