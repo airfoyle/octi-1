@@ -210,13 +210,15 @@ module Octi
 				#1,000 points for each pod
 				material_score[idx] += 1000 
 				#100 points per prong
-				material_score[idx] += (number_of_prongs(loc)*100)
+				
+				#material_score[idx] += (player.prong_reserve*100)
+				material_score[idx] += (number_of_prongs(loc)*100) + (player.prong_reserve*100)#number of prongs in reserve should count for something
 				#500 points to current pod with friendly pod in adjacent location
 				material_score[idx] += (friendly_pod_nearby(loc, player)* 500)
 
 				material_score[idx] += (scoring_position(loc,player)*200)
 
-				material_score[idx] += (opposite_prongs(loc) ? 500 : 0) #(opposite_prongs(loc)*400)
+				material_score[idx] += (opposite_prongs(loc) * 100 ) #(opposite_prongs(loc)*400)
 
 				position_score[idx] += ((7 - new_distance(loc, player))*5000) #500
 				#can current pod 
@@ -224,7 +226,7 @@ module Octi
 				#past middle of board?
 				material_score[idx] += (middle?(loc, player) ? 100: 0) #400
 
-				total = (0.2*material_score[idx] + 0.133*position_score[idx])
+				total = (0.2*material_score[idx] + 0.15*position_score[idx])
 				if total > final_score
 					final_score = total
 				end
