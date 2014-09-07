@@ -1,7 +1,6 @@
 module Octi
 	class Player 
 		attr_reader :comp, :human, :index
-		attr_accessor :prong_reserve
 		def initialize(i, reserve)
 			@index = i
 			@prong_reserve = reserve
@@ -31,9 +30,9 @@ module Octi
 
 		def worst_value
 			if @index == 0
-				return -100
+				return -500000
 			else
-				return 100
+				return 500000
 			end
 		end
 

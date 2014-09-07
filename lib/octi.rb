@@ -1,5 +1,5 @@
 require_relative "octi/version"
-#require 'debugger'
+require 'debugger'
 require 'colorize'
 #require "deep_clone"
 

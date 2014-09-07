@@ -9,7 +9,7 @@ module Octi
 			@human = Player.new(1, 12)
 			@board_obj = Board.new(6,7, @comp, @human)
 			@initial_position = Position.new(@board_obj.board, @comp, @human)
-		#	game_tree = GameTree.new(@initial_position)
+
 			@moves_made = Array.new(2) { Array.new() }
 
 			@ui.print_message("Welcome to OCTI!")
@@ -17,17 +17,19 @@ module Octi
 		end
 
 		def run(current_position, player_to_move)
+			
 			if current_position.game_ended?(player_to_move)
-			 winner(current_position.end_value(player_to_move), player_to_move)
+				puts "#{current_position.heuristic_value(player_to_move)}".colorize(:red)
+			 winner(current_position.end_value(player_to_move), player_to_move, current_position)
 			else
 				
 				next_move = turn(player_to_move, current_position, @@count)
-				@moves_made[player_to_move.index].push(next_move)
+				#@moves_made[player_to_move.index].push(next_move)
 				#puts "move->#{next_move} ".colorize(:green)
 				if next_move != nil
 					c_p = next_move.execute_move(current_position)
 					current_position = c_p
-					 winner(current_position.end_value(player_to_move), player_to_move)
+					 winner(current_position.end_value(player_to_move), player_to_move, current_position)
 				end 
 				run(current_position, current_position.other_player(player_to_move)) 
 			end
@@ -133,7 +135,7 @@ module Octi
 		end
 		def print_move(move)
 			if move.class == Insert
-				puts "#{move.origin.pretty_string} + #{move.direction[move.x][move.y]}"
+				puts "#{move.origin.pretty_string} + #{move.direction[move.x][move.y]}...#{move.new_prong_reserve}"
 			elsif move.class == Hop
 				puts "#{move.origin.pretty_string} - #{move.destination.pretty_string}" 
 			elsif move.class == Jump
@@ -171,8 +173,9 @@ module Octi
 			return nil
 		end
 
-		def winner(value, player)
-			if value == 100
+		def winner(value, player, position)
+
+			if value == 500000
 				if player.index == 0
 					abort( "GAME OVER. You lose.")
 				elsif player.index == 1

@@ -45,9 +45,9 @@ module Octi
 			end
 		end
 		
-		def opposite_prongs?(pod, i, j)
-			#todo
-		end
+		# def opposite_prongs?(pod, i, j)
+		# 	#todo
+		# end
 		
 		def on_board(x,y)
 			if (0..5)===(x) && (0..6)===(y)
@@ -196,7 +196,178 @@ module Octi
 			end
 		end
 		
+
 		def heuristic_value(player)
+			#material and position arrays. material relates to games pieces and position relates to position of those pieces 
+			#created by the pod count
+			#scores are assessed on a per pod basis
+			#bonuses are added to material and position to account for special situations 
+
+			material_score = Array.new(@podLocs[player.index].length){0}
+			position_score = Array.new(@podLocs[player.index].length){0}
+			final_score = 0
+			@podLocs[player.index].each_with_index do |loc, idx|
+				#1,000 points for each pod
+				material_score[idx] += 1000 
+				#100 points per prong
+				material_score[idx] += (number_of_prongs(loc)*100)
+				#500 points to current pod with friendly pod in adjacent location
+				material_score[idx] += (friendly_pod_nearby(loc, player)* 500)
+
+				material_score[idx] += (scoring_position(loc,player)*200)
+
+				material_score[idx] += (opposite_prongs(loc) ? 500 : 0) #(opposite_prongs(loc)*400)
+
+				position_score[idx] += ((7 - new_distance(loc, player))*5000) #500
+				#can current pod 
+				material_score[idx] += (can_jump_friendly_pod?(loc,player) * 500 )
+				#past middle of board?
+				material_score[idx] += (middle?(loc, player) ? 100: 0) #400
+
+				total = (0.2*material_score[idx] + 0.133*position_score[idx])
+				if total > final_score
+					final_score = total
+				end
+			end
+			#puts "m#{material_score}+p#{position_score} = #{(material_score.reduce(:+) + position_score.reduce(:+))}".colorize(:green)
+			return final_score
+		end
+
+		def middle?(loc, player) 
+			if player.index == 0
+				if loc.y > 3
+					return true
+				end
+			elsif player.index == 1
+				if loc.y < 3
+					return true
+				end
+			end
+			return false 
+		end
+		def can_jump_friendly_pod?(l,player)
+			result = 0
+			#locations of neighboring pods
+			neighbors = Array.new(3) { Array.new(3, false) }
+			#current pod
+			neighbors[1][1] = 0
+			if @pods[l.x][l.y].is_a?(Pod)
+				pod = @pods[l.x][l.y]
+				neighbors.each_with_index do |col, i|
+					col.each_with_index do |row, j|
+						if !(i == 1 && j == 1)
+							delta_x = i - 1
+							delta_y = j - 1
+							if is_friendly?(delta_x+l.x, delta_y+l.y, player) 
+								delta_i = delta_x*2
+								delta_j = delta_y*2
+								jump_destination = Location.new(l.x+delta_i, l.y+delta_j) 
+								if on_board(jump_destination.x,jump_destination.y) && (@pods[jump_destination.x][jump_destination.y] == nil)
+									result += 1
+									#debugger
+								end
+							end
+						end
+					end
+				end
+			end
+			return result 
+		end
+		def new_distance(l, player)
+			distance_to_base = 100
+			dist = distance(l, player, distance_to_base)
+			if dist <= distance_to_base
+				distance_to_base = dist 
+			end
+			return dist
+		end
+		def opposite_prongs(l)
+			result = 0
+			if @pods[l.x][l.y].is_a?(Pod)
+				pod = @pods[l.x][l.y]
+				if has_prongs(pod, 0, 0) && has_prongs(pod, 2,2)
+					result += 1
+				end
+				if has_prongs(pod, 1, 0) && has_prongs(pod, 1,2)
+					result += 1
+				end
+				if has_prongs(pod, 2, 0) && has_prongs(pod, 0,2)
+					result += 1
+				end
+				if has_prongs(pod, 0, 1) && has_prongs(pod, 2,1)
+					result += 1
+				end
+			end
+			return result
+		end
+		def scoring_position(l,player) 
+			result = 0
+			if @pods[l.x][l.y].is_a?(Pod)
+				pod = @pods[l.x][l.y]
+				pod.prongs.each_with_index do |col, i|
+					col.each_with_index do |row, j|
+						if has_prongs(pod,i,j) && !(i == 1 && j == 1)
+							delta_x = i - 1
+							delta_y = j - 1
+							#location direction of prong
+							d = Location.new(l.x+delta_x, l.y+delta_y)
+							while on_board(d.x,d.y) do
+								if is_base?(d.x,d.y, other_player(player)) 
+									#debugger
+									result += 1
+								end
+								d = Location.new(d.x+delta_x, d.y+delta_y)
+							end
+						end
+					end
+				end
+			end
+			return result
+		end
+		
+		def number_of_prongs(l)
+			result = 0
+			if @pods[l.x][l.y].is_a?(Pod)
+				pod = @pods[l.x][l.y]
+				pod.prongs.each_with_index do |col, i|
+					col.each_with_index do |row, j|
+						if has_prongs(pod, i, j) && !(i == 1 && j == 1)
+							result += 1
+						end
+					end
+				end
+			end
+			return result
+		end
+
+		def friendly_pod_nearby(l,player)
+			result = 0
+			#locations of neighboring pods
+			neighbors = Array.new(3) { Array.new(3, false) }
+			#current pod
+			neighbors[1][1] = 0
+			if @pods[l.x][l.y].is_a?(Pod)
+				pod = @pods[l.x][l.y]
+				neighbors.each_with_index do |col, i|
+					col.each_with_index do |row, j|
+						if !(i == 1 && j == 1)
+							delta_x = i - 1
+							delta_y = j - 1
+							friend_loc = Location.new(delta_x+l.x, delta_y+l.y)
+							if is_friendly?(friend_loc.x,friend_loc.y, player)
+								#result += 1
+								result += (1+scoring_position(friend_loc, player))
+								
+							end
+						end
+					end
+				end
+			end
+			return result
+		end
+
+
+		def heuristic_value_old(player)
 			#change variables to rep player vs opponent
 			player_number_of_pods = 0
 
@@ -220,12 +391,6 @@ module Octi
 							if has_prongs(pod, i, j) && !(i == 1 && j == 1)
 								player_prongs_on_board = player_prongs_on_board + 1
 							end
-							if player_distance_to_base ==1 
-								for base in player.opponent_bases
-									if (l.x+i == base.x && l.y+j == base.y) && @pods[base.x][base.y] == nil
-									end
-								end
-							end
 						end
 					end
 				end
@@ -242,7 +407,7 @@ module Octi
 		
 			bonus_diff = bonus(player, 0) #- bonus(opponent, 0)
 			deduc_diff = deductions(player, 0) #- deductions(opponent, 0)
-			val = total_distance_to_base + number_of_pods*(3) + prong_count*(0.625) + mobility*(0.125)+ bonus_diff + deduc_diff
+			val = total_distance_to_base + number_of_pods*(18.825) + prong_count*(0.625) + mobility*(0.125)+ bonus_diff + deduc_diff
 				
 				if can_score?(player)
 					val = 99
@@ -483,11 +648,13 @@ module Octi
 		end
 		def is_friendly?(x,y, curr_player)
 			#return true if given coordinates relate to a friendly pod 
-			@podLocs[curr_player.index].each do |l|
-				if l.x == x && l.y == y
-					return true
+			if @pods[x][y].is_a?(Pod)
+				@podLocs[curr_player.index].each do |l|
+					if l.x == x && l.y == y
+						return true
+					end 
 				end 
-			end 
+			end
 			return false
 		end
 
@@ -500,11 +667,10 @@ module Octi
 		end
 
 		def end_value(player)
-	
 			@podLocs[player.index].each do |pod| 
 				player.opponent_bases.each do |base|
 					if pod.x == base.x && pod.y == base.y
-						return 100
+						return 500000
 					end
 				end
 			end

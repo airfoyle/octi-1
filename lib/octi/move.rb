@@ -14,7 +14,7 @@ module Octi
 	end
 
 	class Insert < Move
-		attr_reader :pod, :prongs, :inserts, :origin, :x, :y, :direction
+		attr_reader :pod, :prongs, :inserts, :origin, :x, :y, :direction, :new_prong_reserve
 		def initialize(pod,x,y,player)
 			@origin = pod #pod location
 			@x = x
@@ -31,14 +31,14 @@ module Octi
 			@direction[2][2] = "D"#:Southeast"
 			
 
-			#@new_prong_reserve = player.prong_reserve-1
+			@new_prong_reserve = player.prong_reserve-1
 		end
 
 		def execute_move(position)
-			count = @player.prong_reserve-1
+
+			count = @new_prong_reserve
 			
 			index = @player.index
-			#puts "player: #{@player.inspect}"
 			if index == position.comp.index
 				new_comp = Player.new(index, count)
 				new_human = position.human
@@ -46,16 +46,7 @@ module Octi
 				new_comp.set_bases(position.comp.bases)
 				new_human.set_opponent_bases(position.human.opponent_bases)
 				new_human.set_bases(position.human.bases)
-			elsif index == position.human.index
-				new_comp = position.comp
-				new_human = Player.new(index, count)
-				new_human.set_opponent_bases(position.human.opponent_bases)
-				new_human.set_bases(position.human.bases)
-				new_comp.set_opponent_bases(position.comp.opponent_bases)
-				new_comp.set_bases(position.comp.bases)
-			else
-				puts "ERROR".colorize(:yellow)
-			end
+
 
 			#New pod array 
 			#new_array = position.pods.dup#DeepClone.clone position.pods
@@ -67,17 +58,45 @@ module Octi
 			new_prongs[@x][@y] = true 
 			#freeze
 			two_array_freeze(new_prongs)
-			new_pod = Pod.new(@player)
+			new_pod = Pod.new(new_comp)
 			new_pod.set_prongs(new_prongs)
 			new_array[@origin.x][@origin.y] = new_pod
 			two_array_freeze(new_array)
 			
+			elsif index == position.human.index
+				new_comp = position.comp
+				new_human = Player.new(index, count)
+				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
+				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
+
+
+			#New pod array 
+			#new_array = position.pods.dup#DeepClone.clone position.pods
+			new_array = two_array_copy(position.pods)
+		
+			pod = new_array[@origin.x][@origin.y]
+			new_prongs = two_array_copy(pod.prongs)
+
+			new_prongs[@x][@y] = true 
+			#freeze
+			two_array_freeze(new_prongs)
+			new_pod = Pod.new(new_human)
+			new_pod.set_prongs(new_prongs)
+			new_array[@origin.x][@origin.y] = new_pod
+			two_array_freeze(new_array)
+			
+			else
+				puts "ERROR".colorize(:yellow)
+			end
+
 		
 			new_pos = Position.new(new_array, new_comp, new_human)
 
+			
 			return new_pos					
 		end
-
 	end
 
 	class Hop < Move
@@ -98,25 +117,15 @@ module Octi
 				new_comp.set_bases(position.comp.bases)
 				new_human.set_opponent_bases(position.human.opponent_bases)
 				new_human.set_bases(position.human.bases)
-			elsif index == position.human.index
-				new_comp = position.comp
-				new_human = Player.new(index, count)
-				new_human.set_opponent_bases(position.human.opponent_bases)
-				new_human.set_bases(position.human.bases)
-				new_comp.set_opponent_bases(position.comp.opponent_bases)
-				new_comp.set_bases(position.comp.bases)
-			else
-				puts "ERROR".colorize(:yellow)
-			end
 
-			#New pod array 
+					#New pod array 
 			#new_array = position.pods.dup#DeepClone.clone position.pods
 			new_array = two_array_copy(position.pods)
 			pod = new_array[@origin.x][@origin.y]
 			new_prongs = two_array_copy(pod.prongs)
 		
 			#freeze pod
-			new_pod = Pod.new(@player)
+			new_pod = Pod.new(new_comp)
 			new_array[@destination.x][@destination.y] = new_pod
 			new_array[@origin.x][@origin.y] = nil
 			two_array_freeze(new_array)
@@ -124,6 +133,34 @@ module Octi
 			#freeze prongs
 			two_array_freeze(new_prongs)
 			new_pod.set_prongs(new_prongs)
+			elsif index == position.human.index
+				new_comp = position.comp
+				new_human = Player.new(index, count)
+				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
+				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
+
+					#New pod array 
+			#new_array = position.pods.dup#DeepClone.clone position.pods
+			new_array = two_array_copy(position.pods)
+			pod = new_array[@origin.x][@origin.y]
+			new_prongs = two_array_copy(pod.prongs)
+		
+			#freeze pod
+			new_pod = Pod.new(new_human)
+			new_array[@destination.x][@destination.y] = new_pod
+			new_array[@origin.x][@origin.y] = nil
+			two_array_freeze(new_array)
+
+			#freeze prongs
+			two_array_freeze(new_prongs)
+			new_pod.set_prongs(new_prongs)
+			else
+				puts "ERROR".colorize(:yellow)
+			end
+
+		
 
 			new_pos = Position.new(new_array, new_comp, new_human)
 
@@ -147,23 +184,14 @@ module Octi
 			index = @player.index
 
 			count = @player.prong_reserve
-		if index == position.comp.index
+			if index == position.comp.index
 				new_comp = Player.new(index, count)
 				new_human = position.human
 				new_comp.set_opponent_bases(position.comp.opponent_bases)
 				new_comp.set_bases(position.comp.bases)
 				new_human.set_opponent_bases(position.human.opponent_bases)
 				new_human.set_bases(position.human.bases)
-			elsif index == position.human.index
-				new_comp = position.comp
-				new_human = Player.new(index, count)
-				new_human.set_opponent_bases(position.human.opponent_bases)
-				new_human.set_bases(position.human.bases)
-				new_comp.set_opponent_bases(position.comp.opponent_bases)
-				new_comp.set_bases(position.comp.bases)
-			else
-				puts "ERROR".colorize(:yellow)
-			end
+
 
 			#New pod array 
 			#new_array = position.pods.dup#DeepClone.clone position.pods
@@ -171,7 +199,7 @@ module Octi
 			pod = new_array[@origin.x][@origin.y]
 			new_prongs = two_array_copy(pod.prongs)
 			#freeze pod
-			new_pod = Pod.new(@player)
+			new_pod = Pod.new(new_comp)
 			new_array[@destination.x][@destination.y] = new_pod
 
 			
@@ -193,12 +221,59 @@ module Octi
 			end
 			new_array[@origin.x][@origin.y] = nil
 			#add to player's reserve
-			@player.set_prong_reserve(@player.prong_reserve+add_to_prong_reserve)
+			new_comp.set_prong_reserve(new_comp.prong_reserve+add_to_prong_reserve)
 			two_array_freeze(new_array)
 
 			#freeze prongs
 			two_array_freeze(new_prongs)
 			new_pod.set_prongs(new_prongs)
+
+			elsif index == position.human.index
+				new_comp = position.comp
+				new_human = Player.new(index, count)
+				new_human.set_opponent_bases(position.human.opponent_bases)
+				new_human.set_bases(position.human.bases)
+				new_comp.set_opponent_bases(position.comp.opponent_bases)
+				new_comp.set_bases(position.comp.bases)
+
+				#New pod array 
+			#new_array = position.pods.dup#DeepClone.clone position.pods
+			new_array = two_array_copy(position.pods)
+			pod = new_array[@origin.x][@origin.y]
+			new_prongs = two_array_copy(pod.prongs)
+			#freeze pod
+			new_pod = Pod.new(new_human)
+			new_array[@destination.x][@destination.y] = new_pod
+
+			
+
+			add_to_prong_reserve = 0
+
+			if !jumped_pods.empty?
+				#puts "jumped_pods: #{jumped_pods}"
+				for cap in jumped_pods
+					pod = new_array[cap.x][cap.y] 
+					if pod.is_a?(Pod)
+						add_to_prong_reserve = add_to_prong_reserve + pod.prong_count
+						new_array[cap.x][cap.y] = nil
+					else
+						#debugger
+					end
+					
+				end
+			end
+			new_array[@origin.x][@origin.y] = nil
+			#add to player's reserve
+			new_human.set_prong_reserve(new_human.prong_reserve+add_to_prong_reserve)
+			two_array_freeze(new_array)
+
+			#freeze prongs
+			two_array_freeze(new_prongs)
+			new_pod.set_prongs(new_prongs)
+			else
+				puts "ERROR".colorize(:yellow)
+			end
+
 
 			new_pos = Position.new(new_array, new_comp, new_human)
 			#start = @origin
