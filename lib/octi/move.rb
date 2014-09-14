@@ -289,10 +289,38 @@ module Octi
 		end
 	end
 
-	  # Copy a two-dimensional array
+  def self.read_move(srm)
+    okay = true
+    tokens = []
+    # Move must fit on one line, for now
+    line = srm.gets
+    while okay
+      if line.match(/^[1-9][1-9]/, index) then    
+        tokens.push(Location.from_string(line[0..1]))
+        line = line[2..-1]
+      elsif line.match(^[A-Ha-h])
+        tokens.push(line[0].upcase)
+        line = line[1..-1]
+      elsif line.match(/^[+-x]/)
+        tokens.push(line[0])
+        line = line[1..-1]
+      else
+        raise InputError("Bogosity in move description starts here: #{line}")
+      end
+
+
+      octi_tokens_parse_to_move(tokens)
+
+      end
+    end
+
+
+  end
+
 	
 end
 
+  # Copy a two-dimensional array
   def two_array_copy(a)
     new_a = Array.new(a.length)
    #  for i in  0 .. (a.length - 1)
@@ -309,3 +337,4 @@ end
    	end
     a.freeze
   end
+
