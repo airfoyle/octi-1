@@ -1,5 +1,8 @@
 module Octi
 	class Player 
+          @@computer_index = 0;
+          @@opponent_index = 1;
+
 		attr_reader :comp, :human, :index
 		def initialize(i, reserve)
 			@index = i
@@ -19,20 +22,18 @@ module Octi
 
 		def better_for(v1, v2)
 			#puts "index: #{@index} | v1 = #{v1}| v2 = #{v2} "
-			if @index == 0 && (v1 > v2)
-				return true
-			elsif @index == 1 && (v1 < v2)
-				return true
+			if @index == @@computer_index 
+                          return (v1 > v2)
 			else
-				return false
+                          return (v1 < v2)
 			end
 		end
 
 		def worst_value
-			if @index == 0
-				return -500000
+			if @index == @@computer_index
+                          -500000
 			else
-				return 500000
+                          500000
 			end
 		end
 
@@ -52,5 +53,12 @@ module Octi
 			return @opponent_bases
 		end
 
+                def id_string()
+                  if index == @@computer_index then "Comptuter" else "Opponent" end
+                end
+
+                def to_s()
+                  "{#{id_string()}}"
+                end
 	end
 end

@@ -99,6 +99,12 @@ module Octi
 		end
 	end
 
+        # Shift a prong within a pod
+        class Shift < Move
+          attr_reader :x, :y, 
+
+        end
+
 	class Hop < Move
 		attr_reader :pod, :prongs, :board, :origin, :destination, :player
 		def initialize(origin, destination,player)
@@ -290,11 +296,14 @@ module Octi
 	end
 
   def self.read_move(srm)
-    okay = true
-    tokens = []
     # Move must fit on one line, for now
-    line = srm.gets
-    while okay
+    tokens_to_move(tokenize(srm.gets.chomp!))
+  end
+
+  def tokenize(line)
+    tokens = []
+    line = line.lstrip!
+    while line.length > 0
       if line.match(/^[1-9][1-9]/, index) then    
         tokens.push(Location.from_string(line[0..1]))
         line = line[2..-1]
@@ -307,15 +316,38 @@ module Octi
       else
         raise InputError("Bogosity in move description starts here: #{line}")
       end
+      line.lstrip!
+    end
 
-
-      octi_tokens_parse_to_move(tokens)
-
-      end
+    def tokens_to_move(tokens)
+      if tokens.length < 1 || tokens[0].instance_of?(Location) 
+        raise ParseError.new("Move must start with pod location")
+      elsif tokens.length < 2 || not (tokens[1].instance_of?(String))
+        raise ParseError.new("Move must have character (+ or -) as second token.")
+      elsif (tokens[1] == '+')
+        if tokens.length > 2 && tokens[2].instance_of?(String)
+          chp = tokens[2]
+          if (chp = 'A' && chp <= 'H')
+            # Insert-prong or move-prong
+            chpi = chp  - 'A'
+            if tokens.length > 3
+              if tokens.length > 4 && tokens[3] == '-' && tokens[4].instance_of?(String)
+                chm = tokens[4]
+                if chm >= 'A' && chm <= 'H'
+                  # Move-prong
+                  chmi = chm - 'A'
+                  return Shift.new(
+        
     end
 
 
+
   end
+
+  class ParseError < StandardError
+    def initialize(msg)
+       super(msg)
+    end
 
 	
 end
