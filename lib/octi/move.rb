@@ -333,6 +333,8 @@ module Octi
     tokens
   end
 
+  # Convert a list of "tokens" to a move.  A token is a Location
+  # or a character (+, -, x)
     def tokens_to_move(tokens, given_line)
       if tokens.length >= 1 && tokens[0].instance_of?(Location)
         loc0 = tokens[0]
