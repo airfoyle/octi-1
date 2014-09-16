@@ -175,6 +175,7 @@ module Octi
 	end
 
 	class Jump < Move
+                # jumped_pods is a misnomer; they are the captured pods.
 		attr_reader :pod, :prongs, :board, :origin, :destination, :player, :jumped_pods,:steps
 		def initialize(origin, destination, steps, jumped_pods, player)
 			@origin = origin
@@ -297,12 +298,13 @@ module Octi
 
   def self.read_move(srm)
     # Move must fit on one line, for now
-    tokens_to_move(tokenize(srm.gets.chomp!))
+    line = srm.gets.chomp!
+    tokens_to_move(tokenize(line), line)
   end
 
-  def tokenize(line)
+  def tokenize(given_line)
     tokens = []
-    line = line.lstrip!
+    line = String.new(given_line).lstrip!
     while line.length > 0
       if line.match(/^[1-9][1-9]/, index) then    
         tokens.push(Location.from_string(line[0..1]))
@@ -318,30 +320,96 @@ module Octi
       end
       line.lstrip!
     end
+    tokens
+  end
 
-    def tokens_to_move(tokens)
-      if tokens.length < 1 || tokens[0].instance_of?(Location) 
-        raise ParseError.new("Move must start with pod location")
-      elsif tokens.length < 2 || not (tokens[1].instance_of?(String))
-        raise ParseError.new("Move must have character (+ or -) as second token.")
-      elsif (tokens[1] == '+')
-        if tokens.length > 2 && tokens[2].instance_of?(String)
-          chp = tokens[2]
-          if (chp = 'A' && chp <= 'H')
-            # Insert-prong or move-prong
-            chpi = chp  - 'A'
-            if tokens.length > 3
-              if tokens.length > 4 && tokens[3] == '-' && tokens[4].instance_of?(String)
-                chm = tokens[4]
-                if chm >= 'A' && chm <= 'H'
-                  # Move-prong
-                  chmi = chm - 'A'
-                  return Shift.new(
+    def tokens_to_move(tokens, given_line)
+      if tokens.length >= 1 && tokens[0].instance_of?(Location)
+        loc0 = tokens[0]
+        loc0_pretty = loc0.pretty_string()
+        if tokens.length >=2 && tokens[1].instance_of?(String)
+          chr1 = tokens[1]
+          if chr1 == '+'
+            if tokens.length == 3
+              # Insert-prong 
+              chp = tokens[2]
+              if chp >= 'A' && chp <= 'H'
+                chpi = chp  - 'A'
+                return Insert.new(loc0,chpi)
+              else
+                raise ParseError.new("Illegal peg in Insert move: #{loc0_pretty}+#{chp}")
+              end
+            elsif tokens.length == 5 && tokens[3] == '-'
+              # Shift-prong
+              chp = tokens[2]
+              chm = tokens[4]
+              chp_good = (chp >= 'A' && chp <= 'H')
+              chm_good = (chm >= 'A' && chm <= 'H')
+              if chp_good && chm_good
+                chpi = chp - 'A'
+                chmi = chm - 'A'
+                return Shift.new(loc0, chpi, chmi)
+              else
+                which_bad = if !chp_good && chm_good
+                              "destination"
+                            elsif chp_good && !chm_good
+                              "source"
+                            else
+                              "destination and source"
+                            end
+                raise ParseError.new("Illegal peg #{which_bad} in Shift move: #{loc0_pretty}+#{chp}-#{chm}")
+              end
+            end
+          elsif chr1 == '-'
+            tokens_to_hop_or_jump(tokens, loc0)
+          else
+            raise ParseError.new("Illegal character after starting location: #{loc0_pretty}#{chr1}...")
+          end
+        end
+      else
+        raise ParseError.new("Move must start with pod location not #{tokens[0]} [in \"#{given_line}\"]")
+      end
+  end
+
+  # Parse a Hop or Jump starting with loc0.  We already know that the second token is '-'
+  def tokens_to_hop_or_jump(tokens, loc0)
+    if tokens.length == 3 && tokens[2].instance_of?(Location)
+      # Hop -- easy.  I'm betting the third argument is irrelevant
+      return Hop.new(loc0, token[2], nil)
+    else
+      # Now it gets tough.
+      tokens.delete_at(0)
+      captured = []
+      steps = []
+      keep_going = true
+      prev = loc0
+      while keep_going
+        jumped_loc, j_captured = dequeue_loc(tokens)
+        if j_captured
+          captured.push(jumped_loc)
+        end
+        next_dest, captured = dequeue_loc(tokens)
+        if captured
+          # You can't capture the square you're jumping to
+          prev_pretty = prev.pretty_string()
+          jumped_pretty = jumped_loc.pretty_string()
         
+          if j_captured
+            jumped_pretty += "x"
+          end
+          next_pretty = next_dest.pretty_string()
+          
+          raise ParseError.new("'x' in inappropriate position: ...#{prev_pretty}-#{jumped_pretty}-#{next_pretty}x...")
+        else
+          steps.push(next_dest)
+          prev = next_dest
+          keep_going = tokens.length > 0
+        end
+      end
+      final_dest = steps.pop();
+      # We'll bet that last arg is unim
+      return Jump.new(origin, final_dest, steps, captured, nil)
     end
-
-
-
   end
 
   class ParseError < StandardError
