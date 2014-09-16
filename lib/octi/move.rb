@@ -101,10 +101,18 @@ module Octi
 
         # Shift a prong within a pod
         class Shift < Move
-          attr_reader :x, :y, 
-
+          # Integers from 0 to 7 specifying where the peg is added and where it
+          # came from
+          attr_reader :dest, :source
+          def initialize(loc, dest, source)
+            super(loc, loc)
+            @dest = dest
+            @source = source
+          end
         end
 
+        # Slide a pod one square, horizontally, vertically, or diagonally,
+        # provided you have a peg licensing the move.
 	class Hop < Move
 		attr_reader :pod, :prongs, :board, :origin, :destination, :player
 		def initialize(origin, destination,player)
@@ -302,6 +310,8 @@ module Octi
     tokens_to_move(tokenize(line), line)
   end
 
+  # Convert a line of characters to "tokens," which are locations with characters (+, -, and x)
+  # interspersed.
   def tokenize(given_line)
     tokens = []
     line = String.new(given_line).lstrip!
