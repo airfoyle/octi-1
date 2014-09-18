@@ -1,8 +1,10 @@
 require_relative "location"
+require_relative "move"
 
 while true
-  puts "Type two numerical digits: "
-  line = gets
+  puts "Type a move: "
+  line = gets.chomp!
+  if line.length
   md = line.match(/[1-9][1-9]/)
   if md
     cl = md.begin(0)

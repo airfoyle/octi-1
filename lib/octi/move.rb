@@ -303,8 +303,9 @@ module Octi
 			return @jumped_pods
 		end
 	end
+  end
 
-  def self.read_move(srm)
+  def read_move(srm)
     # Move must fit on one line, for now
     line = srm.gets.chomp!
     tokens_to_move(tokenize(line), line)
@@ -424,21 +425,31 @@ module Octi
     end
   end
 
+  # Remove a Location from the front of tokens, or raise a ParseError
+  def dequeue_loc(tokens)
+    if tokens.length > 0 && tokens[0].instance_of?(Location)
+      loc = tokens[0]
+      tokens.delete_at(0)
+      return loc
+    elsif tokens.length > 0 
+      raise ParseError.new("Unexpected token [#{tokens[0]}] where location expected")
+    else
+      raise ParseError.new("Tokens end prematurely; expecting location")
+    end
+  end
+
   class ParseError < StandardError
     def initialize(msg)
        super(msg)
     end
-
+  end
 	
 end
 
   # Copy a two-dimensional array
   def two_array_copy(a)
     new_a = Array.new(a.length)
-   #  for i in  0 .. (a.length - 1)
-   #    new_a[i] = a[0].dup
-  	# end
-  	new_a = Marshal.load( Marshal.dump( a ) )
+    new_a.each.dup
     return new_a
   end
 
