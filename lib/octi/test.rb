@@ -2,9 +2,8 @@ require_relative "location"
 require_relative "move"
 
 while true
-  puts "Type a move: "
+  puts "Type a location: "
   line = gets.chomp!
-  if line.length
   md = line.match(/[1-9][1-9]/)
   if md
     cl = md.begin(0)

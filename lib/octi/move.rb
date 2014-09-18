@@ -320,7 +320,7 @@ module Octi
       if line.match(/^[1-9][1-9]/, index) then    
         tokens.push(Location.from_string(line[0..1]))
         line = line[2..-1]
-      elsif line.match(^[A-Ha-h])
+      elsif line.match(/^[A-Ha-h]/)
         tokens.push(line[0].upcase)
         line = line[1..-1]
       elsif line.match(/^[+-x]/)
