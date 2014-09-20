@@ -1,18 +1,19 @@
-require_relative "location"
-require_relative "move"
+["location", "move", "pod"].each { |f|
+   require_relative f
+   }
 
-while true
-  puts "Type a move: "
-  line = gets.chomp!
-  if line.length
-  md = line.match(/[1-9][1-9]/)
-  if md
-    cl = md.begin(0)
-    l1 = Octi::Location.from_string(line[cl..(cl+1)]);
-    puts "Location: " + l1.to_s;
-    pretty = l1.pretty_string;
-    puts "Pretty: " + pretty;
+module Octi
+  while true
+    puts "Type a move: "
+    line = gets.chomp!
+    break if line.length == 0
+    begin
+      mr = Move.parse_move(line)
+      puts "Move: #{mr}"
+    rescue => e
+      puts "*** Unexpected #{e}"
+    end
   end
-end  
-
+  puts "Bye!"
+end
 

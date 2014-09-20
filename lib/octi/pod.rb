@@ -14,28 +14,30 @@ module Octi
                 @@direction[1][2] = "E"  #:South
                 @@direction[2][2] = "D"  #:Southeast
                 for i in (0..2)
-                   freeze @@direction[i]
+                   @@direction[i].freeze
                 end
-                freeze @@direction
+                @@direction.freeze
 
                 # For translating the other way (letter already translated to number, A = 0)
                 # To make coordinates match the subscripts above, add 1
                 @@offset = Array.new(9)
                 @@offset[0] = [0,-1]
-                @@offset[1] = [1,1]
+                @@offset[1] = [1,-1]
                 @@offset[2] = [1,0]
                 @@offset[3] = [1,1]
                 @@offset[4] = [0,1]
                 @@offset[5] = [-1,1]
                 @@offset[6] = [-1,0]
                 @@offset[7] = [-1,-1]
-                freeze(offset)
+                @@offset.freeze
 
                 # Check 
                 for i in (0..7)
                   off = @@offset[i]
-                  if (@@direction[off[0] + 1, off[1] + 1] != i)
-                    raise ArgumentError("@@direction doesn't match @@offset for prong #{i}")
+                  #### puts "Offset @{i}: #{off}"
+                  if (char_dif(@@direction[off[0] + 1][off[1] + 1], 'A') != i)
+                    raise ArgumentError.new("@@direction doesn't match @@offset for prong #{i}")
+                  end
                 end
 
 		def initialize(player)
@@ -43,7 +45,6 @@ module Octi
 			@prongs[1][1] = 0
 			@player = player
 		end
-
 
                 def self.direction()
                   return @@direction
@@ -87,7 +88,7 @@ module Octi
                 end
 
                 def filled(prongnum)
-                  off = @@offset(prongnum)
+                  off = Pod.offset(prongnum)
                   prongs[off[0] + 1, off[1] + 1]
                 end
 

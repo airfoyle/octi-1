@@ -11,28 +11,168 @@ module Octi
 		def execute_move(position)
 		end
 
-	end
+           def self.parse_move(line)
+             line.chomp!
+             tokens_to_move(tokenize(line), line)
+           end
+
+           # Convert a line of characters to "tokens," which are locations
+           # with characters (+, -, and x) interspersed --
+           def self.tokenize(given_line)
+             tokens = []
+             line = String.new(given_line).lstrip
+             while line.length > 0
+               if line.match(/^[1-9][1-9]/) then    
+                 tokens.push(Location.from_string(line[0..1]))
+                 line = line[2..-1]
+               elsif line.match(/^[A-Ha-h]/)
+                 tokens.push(line[0].upcase)
+                 line = line[1..-1]
+               elsif line.match(/^[+-x]/)
+                 tokens.push(line[0])
+                 line = line[1..-1]
+               else
+                 raise InputError("Bogosity in move description starts here: #{line}")
+               end
+               line.lstrip!
+             end
+             tokens
+           end
+
+           # Convert a list of "tokens" to a move.  A token is a Location
+           # or a character (+, -, x)
+             def self.tokens_to_move(tokens, given_line)
+               puts "Call tokens_to_move(#{tokens}, #{given_line})"
+               if tokens.length >= 1 && tokens[0].instance_of?(Location)
+                 loc0 = tokens[0]
+                 loc0_pretty = loc0.pretty_string()
+                 if tokens.length >=2 && tokens[1].instance_of?(String)
+                   chr1 = tokens[1]
+                   if chr1 == '+'
+                     if tokens.length == 3
+                       # Insert-prong
+                       chp = tokens[2]
+                       puts "Case Insert prong #{chp}"
+                       if chp >= 'A' && chp <= 'H'
+                         chpi = char_dif(chp, 'A')
+                         puts "Creating Insert"
+                         m = Insert.new(loc0,chpi)
+                         puts "Returning Insert"
+                         return m
+                       else
+                         raise ParseError.new("Illegal peg in Insert move: #{loc0_pretty}+#{chp}")
+                       end
+                     elsif tokens.length == 5 && tokens[3] == '-'
+                       # Shift-prong
+                       chp = tokens[2]
+                       chm = tokens[4]
+                       chp_good = (chp >= 'A' && chp <= 'H')
+                       chm_good = (chm >= 'A' && chm <= 'H')
+                       if chp_good && chm_good
+                         chpi = char_dif(chp, 'A')
+                         chmi = char_dif(chm, 'A')
+                         return Shift.new(loc0, chpi, chmi)
+                       else
+                         which_bad = if !chp_good && chm_good
+                                       "destination"
+                                     elsif chp_good && !chm_good
+                                       "source"
+                                     else
+                                       "destination and source"
+                                     end
+                         raise ParseError.new("Illegal peg #{which_bad} in Shift move: #{loc0_pretty}+#{chp}-#{chm}")
+                       end
+                     end
+                   elsif chr1 == '-'
+                     tokens_to_hop_or_jump(tokens, loc0)
+                   else
+                     raise ParseError.new("Illegal character after starting location: #{loc0_pretty}#{chr1}...")
+                   end
+                 end
+               else
+                 raise ParseError.new("Move must start with pod location not #{tokens[0]} [in \"#{given_line}\"]")
+               end
+           end
+
+           # Parse a Hop or Jump starting with loc0.  We already know that the second token is '-'
+           def self.tokens_to_hop_or_jump(tokens, loc0)
+             if tokens.length == 3 && tokens[2].instance_of?(Location)
+               # Hop -- easy.  I'm betting the third argument is irrelevant
+               return Hop.new(loc0, token[2], nil)
+             else
+               # Now it gets tough.
+               tokens.delete_at(0)
+               captured = []
+               steps = []
+               keep_going = true
+               prev = loc0
+               while keep_going
+                 jumped_loc, j_captured = dequeue_loc(tokens)
+                 if j_captured
+                   captured.push(jumped_loc)
+                 end
+                 next_dest, captured = dequeue_loc(tokens)
+                 if captured
+                   # You can't capture the square you're jumping to
+                   prev_pretty = prev.pretty_string()
+                   jumped_pretty = jumped_loc.pretty_string()
+                   if j_captured
+                     jumped_pretty += "x"
+                   end
+                   next_pretty = next_dest.pretty_string()
+                   raise ParseError.new("'x' in inappropriate position: ..." +
+                                        "#{prev_pretty}-#{jumped_pretty}-#{next_pretty}x...")
+                 else
+                   steps.push(next_dest)
+                   prev = next_dest
+                   keep_going = tokens.length > 0
+                 end
+               end
+               final_dest = steps.pop();
+               # We'll bet that last arg is unim
+               return Jump.new(origin, final_dest, steps, captured, nil)
+             end
+           end
+
+           # Remove a Location from the front of tokens, or raise a ParseError
+           def self.dequeue_loc(tokens)
+             if tokens.length > 0 && tokens[0].instance_of?(Location)
+               loc = tokens[0]
+               tokens.delete_at(0)
+               return loc
+             elsif tokens.length > 0 
+               raise ParseError.new("Unexpected token [#{tokens[0]}] where location expected")
+             else
+               raise ParseError.new("Tokens end prematurely; expecting location")
+             end
+           end
+	end  # class Move
 
 	class Insert < Move
 		attr_reader :pod, :prongs, :inserts, :origin, :x, :y, :direction, :new_prong_reserve
-		def initialize(pod,x,y,player)
-			@origin = pod #pod location
-			@x = x
-			@y = y
-			@player = player
-			@direction = Array.new(3) { Array.new(3) }
-			@direction[0][0] = "H"#:Northwest"
-			@direction[1][0] = "A"#:North"
-			@direction[2][0] = "B"#:Northeast"
-			@direction[0][1] = "G"#:West"
-			@direction[0][2] = "F"#:Southwest"
-			@direction[1][2] = "E"#:South"
-			@direction[2][1] = "C"#:East"
-			@direction[2][2] = "D"#:Southeast"
-			
-
-			@new_prong_reserve = player.prong_reserve-1
+		def initialize(pod_loc, prong_num)                #   pod,x,y,player
+			@origin = pod_loc
+                        @pod = pod_loc
+                        offset = Pod.offset[prong_num]
+                        puts "offset = #{offset}"
+			@x = offset[0]
+			@y = offset[1]
+			#### @player = player
+####			@direction = Array.new(3) { Array.new(3) }
+####			@direction[0][0] = "H"#:Northwest"
+####			@direction[1][0] = "A"#:North"
+####			@direction[2][0] = "B"#:Northeast"
+####			@direction[0][1] = "G"#:West"
+####			@direction[0][2] = "F"#:Southwest"
+####			@direction[1][2] = "E"#:South"
+####			@direction[2][1] = "C"#:East"
+####			@direction[2][2] = "D"#:Southeast"
+			#### @new_prong_reserve = player.prong_reserve-1
 		end
+
+                def prong_direction()
+                   Pod.direction[@x+1][@y+1]
+                end
 
 		def execute_move(position)
 
@@ -97,6 +237,10 @@ module Octi
 			
 			return new_pos					
 		end
+
+                def to_s
+                  "#{Insert prong #{prong_direction()} in pod at #{@pod.pretty_string}}"
+                end
 	end
 
         # Shift a prong within a pod
@@ -303,140 +447,6 @@ module Octi
 			return @jumped_pods
 		end
 	end
-  end
-
-  def read_move(srm)
-    # Move must fit on one line, for now
-    line = srm.gets.chomp!
-    tokens_to_move(tokenize(line), line)
-  end
-
-  # Convert a line of characters to "tokens," which are locations with characters (+, -, and x)
-  # interspersed.
-  def tokenize(given_line)
-    tokens = []
-    line = String.new(given_line).lstrip!
-    while line.length > 0
-      if line.match(/^[1-9][1-9]/, index) then    
-        tokens.push(Location.from_string(line[0..1]))
-        line = line[2..-1]
-      elsif line.match(^[A-Ha-h])
-        tokens.push(line[0].upcase)
-        line = line[1..-1]
-      elsif line.match(/^[+-x]/)
-        tokens.push(line[0])
-        line = line[1..-1]
-      else
-        raise InputError("Bogosity in move description starts here: #{line}")
-      end
-      line.lstrip!
-    end
-    tokens
-  end
-
-  # Convert a list of "tokens" to a move.  A token is a Location
-  # or a character (+, -, x)
-    def tokens_to_move(tokens, given_line)
-      if tokens.length >= 1 && tokens[0].instance_of?(Location)
-        loc0 = tokens[0]
-        loc0_pretty = loc0.pretty_string()
-        if tokens.length >=2 && tokens[1].instance_of?(String)
-          chr1 = tokens[1]
-          if chr1 == '+'
-            if tokens.length == 3
-              # Insert-prong 
-              chp = tokens[2]
-              if chp >= 'A' && chp <= 'H'
-                chpi = chp  - 'A'
-                return Insert.new(loc0,chpi)
-              else
-                raise ParseError.new("Illegal peg in Insert move: #{loc0_pretty}+#{chp}")
-              end
-            elsif tokens.length == 5 && tokens[3] == '-'
-              # Shift-prong
-              chp = tokens[2]
-              chm = tokens[4]
-              chp_good = (chp >= 'A' && chp <= 'H')
-              chm_good = (chm >= 'A' && chm <= 'H')
-              if chp_good && chm_good
-                chpi = chp - 'A'
-                chmi = chm - 'A'
-                return Shift.new(loc0, chpi, chmi)
-              else
-                which_bad = if !chp_good && chm_good
-                              "destination"
-                            elsif chp_good && !chm_good
-                              "source"
-                            else
-                              "destination and source"
-                            end
-                raise ParseError.new("Illegal peg #{which_bad} in Shift move: #{loc0_pretty}+#{chp}-#{chm}")
-              end
-            end
-          elsif chr1 == '-'
-            tokens_to_hop_or_jump(tokens, loc0)
-          else
-            raise ParseError.new("Illegal character after starting location: #{loc0_pretty}#{chr1}...")
-          end
-        end
-      else
-        raise ParseError.new("Move must start with pod location not #{tokens[0]} [in \"#{given_line}\"]")
-      end
-  end
-
-  # Parse a Hop or Jump starting with loc0.  We already know that the second token is '-'
-  def tokens_to_hop_or_jump(tokens, loc0)
-    if tokens.length == 3 && tokens[2].instance_of?(Location)
-      # Hop -- easy.  I'm betting the third argument is irrelevant
-      return Hop.new(loc0, token[2], nil)
-    else
-      # Now it gets tough.
-      tokens.delete_at(0)
-      captured = []
-      steps = []
-      keep_going = true
-      prev = loc0
-      while keep_going
-        jumped_loc, j_captured = dequeue_loc(tokens)
-        if j_captured
-          captured.push(jumped_loc)
-        end
-        next_dest, captured = dequeue_loc(tokens)
-        if captured
-          # You can't capture the square you're jumping to
-          prev_pretty = prev.pretty_string()
-          jumped_pretty = jumped_loc.pretty_string()
-        
-          if j_captured
-            jumped_pretty += "x"
-          end
-          next_pretty = next_dest.pretty_string()
-          
-          raise ParseError.new("'x' in inappropriate position: ...#{prev_pretty}-#{jumped_pretty}-#{next_pretty}x...")
-        else
-          steps.push(next_dest)
-          prev = next_dest
-          keep_going = tokens.length > 0
-        end
-      end
-      final_dest = steps.pop();
-      # We'll bet that last arg is unim
-      return Jump.new(origin, final_dest, steps, captured, nil)
-    end
-  end
-
-  # Remove a Location from the front of tokens, or raise a ParseError
-  def dequeue_loc(tokens)
-    if tokens.length > 0 && tokens[0].instance_of?(Location)
-      loc = tokens[0]
-      tokens.delete_at(0)
-      return loc
-    elsif tokens.length > 0 
-      raise ParseError.new("Unexpected token [#{tokens[0]}] where location expected")
-    else
-      raise ParseError.new("Tokens end prematurely; expecting location")
-    end
-  end
 
   class ParseError < StandardError
     def initialize(msg)
@@ -460,4 +470,13 @@ end
    	end
     a.freeze
   end
+
+  def char_to_ascii(c)
+    c.getbyte(0)
+  end
+
+  def char_dif(c1,c2)
+    char_to_ascii(c1) - char_to_ascii(c2)
+  end
+
 
