@@ -4,7 +4,8 @@ module Octi
                 @@board_width = 6
 		def initialize(x,y)
                   if x<0 || x >= board_width || y<0 || y > @@board_height
-                    raise ArgumentError.new("Bad args (" + x.to_s + y.to_s + ") to" + " Location.new")
+                    raise ArgumentError.new("Bad args (#{x.to_s}#{y.to_s}) to"
+                                            + " Location.new")
                   else
                     @x = x
                     @y = y
